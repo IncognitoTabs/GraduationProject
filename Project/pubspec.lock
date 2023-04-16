@@ -446,7 +446,7 @@ packages:
     source: hosted
     version: "4.0.15"
   intl:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: intl
       sha256: "910f85bce16fb5c6f614e117efa303e85a1731bb0081edf3604a2ae6e9a3cc91"
@@ -569,10 +569,10 @@ packages:
     dependency: "direct dev"
     description:
       name: msix
-      sha256: "8cd0a6c6deafac9914cf36e8cd3db76b9e4d2ab7dcb6b71310c92a9a84d920f4"
+      sha256: beff6794edd6fad49f2a49a205d429929cbeebb892ef8b144f6b8f6b83d637ad
       url: "https://pub.dev"
     source: hosted
-    version: "3.9.2"
+    version: "3.10.1"
   octo_image:
     dependency: transitive
     description:
@@ -585,26 +585,42 @@ packages:
     dependency: "direct main"
     description:
       name: on_audio_query
-      sha256: d5c93f7683b3c7c032558afc8189e9278e87d4020a594757f026b2b37a223f1a
+      sha256: "403a0bc23881c3c4aa5f228a9592adb3baa7f007133ea48a5ab50fc8751f34f4"
       url: "https://pub.dev"
     source: hosted
-    version: "2.7.0"
+    version: "2.8.0"
+  on_audio_query_android:
+    dependency: transitive
+    description:
+      name: on_audio_query_android
+      sha256: "9a7080925deb87f682a178aaf422ebb6f083a25e7ea5db85e8e690fb0195de64"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  on_audio_query_ios:
+    dependency: transitive
+    description:
+      name: on_audio_query_ios
+      sha256: "5660c623037e9a0a6dd41a2aed8e5eaf7030d630763d6de196af71097b0e1874"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   on_audio_query_platform_interface:
     dependency: transitive
     description:
       name: on_audio_query_platform_interface
-      sha256: "61641573017826b558a42d27446774a6a6ee1a9213c62e5f064ed5f378d035f5"
+      sha256: cec9485cb1b6abad913ad88b01628e550fc8385d7cbcbc66252e53b71aeaddc4
       url: "https://pub.dev"
     source: hosted
-    version: "1.5.0"
+    version: "1.6.0"
   on_audio_query_web:
     dependency: transitive
     description:
       name: on_audio_query_web
-      sha256: efa08ff0d45a02fb369fb0a4f361d4f3b1db32add6b8908606f9afff9393dc4b
+      sha256: "324669c640570c91653b8ff6a59e1df93b2b942373e385c7d05144cd6d4c73e4"
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.5.0"
   package_config:
     dependency: transitive
     description:
@@ -657,10 +673,10 @@ packages:
     dependency: transitive
     description:
       name: path_provider_android
-      sha256: "019f18c9c10ae370b08dce1f3e3b73bc9f58e7f087bb5e921f06529438ac0ae7"
+      sha256: da97262be945a72270513700a92b39dd2f4a54dad55d061687e2e37a6390366a
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.24"
+    version: "2.0.25"
   path_provider_foundation:
     dependency: transitive
     description:
@@ -769,10 +785,10 @@ packages:
     dependency: transitive
     description:
       name: pointycastle
-      sha256: c3120a968135aead39699267f4c74bc9a08e4e909e86bc1b0af5bfd78691123c
+      sha256: "7c1e5f0d23c9016c5bbd8b1473d0d3fb3fc851b876046039509e18e0c7485f2c"
       url: "https://pub.dev"
     source: hosted
-    version: "3.7.2"
+    version: "3.7.3"
   postgrest:
     dependency: transitive
     description:
@@ -958,10 +974,10 @@ packages:
     dependency: transitive
     description:
       name: typed_data
-      sha256: "53bdf7e979cfbf3e28987552fd72f637e63f3c8724c9e56d9246942dc2fa36ee"
+      sha256: "26f87ade979c47a150c9eaab93ccd2bebe70a27dc0b4b29517f2904f04eb11a5"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.0"
+    version: "1.3.1"
   universal_io:
     dependency: transitive
     description:
@@ -1094,10 +1110,10 @@ packages:
     dependency: transitive
     description:
       name: yet_another_json_isolate
-      sha256: cfaaaf91a1a7f4b226a4fbc72b6db2adadccea1bfa337aef9827d2d0cce6d79a
+      sha256: "882c63b275b3ec2b97c360f51bb4c023aa9d5f3f33559c7959cf69c19dccf679"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   youtube_explode_dart:
     dependency: "direct main"
     description:
