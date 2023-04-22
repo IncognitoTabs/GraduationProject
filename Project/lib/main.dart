@@ -125,8 +125,8 @@ class _MyAppState extends State<MyApp> {
 
   Widget initialFuntion() {
     return Hive.box('settings').get('userId') != null
-        ? /*HomePage()*/ DownloadedSongs()
-        : AuthScreen();
+        ? const HomePage() /*DownloadedSongs()*/
+        : const AuthScreen();
   }
 
   @override

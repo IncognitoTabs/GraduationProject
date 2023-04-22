@@ -11,6 +11,7 @@ import 'package:incognito_music/CustomWidgets/gradient_containers.dart';
 import 'package:incognito_music/CustomWidgets/snack_bar.dart';
 import 'package:incognito_music/Helpers/supabase.dart';
 import 'package:incognito_music/Screen/LocalMusic/downloaded_songs.dart';
+import 'package:incognito_music/Screen/Settings/setting.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class HomePage extends StatefulWidget {
@@ -177,12 +178,44 @@ class _HomePageState extends State<HomePage> {
                               builder: (context) =>
                                   const DownloadedSongs(showPlaylists: true)));
                     },
-                  )
+                  ),
+                ListTile(
+                  title: Text(AppLocalizations.of(context)!.downs),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  leading: Icon(Icons.download_done_rounded,
+                      color: Theme.of(context).iconTheme.color),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/playlists');
+                  },
+                ),
+                ListTile(
+                  title: Text(AppLocalizations.of(context)!.settings),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  leading: Icon(Icons.settings_rounded,
+                      color: Theme.of(context).iconTheme.color),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                SettingPage(callback: callback)));
+                  },
+                )
               ]))
             ],
           ),
         ),
       ),
     ));
+  }
+
+  callback() {
+    sectionsToShow = Hive.box('settings').get('sectionsToShow',
+        defaultValue: ['Home', 'Top Charts', 'Youtube', 'Library']) as List;
+        setState(() {
+          
+        });
   }
 }
