@@ -123,6 +123,12 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+void setLocale(Locale value) {
+    setState(() {
+      _locale = value;
+    });
+  }
+
   Widget initialFuntion() {
     return Hive.box('settings').get('userId') != null
         ? const HomePage() /*DownloadedSongs()*/

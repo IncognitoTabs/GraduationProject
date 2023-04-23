@@ -8,8 +8,97 @@ import 'package:incognito_music/Helpers/picker.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../CustomWidgets/snack_bar.dart';
+
+Future<void> createBackup(
+  BuildContext context,
+  List items,
+  Map<String, List> boxNameData, {
+  String? path,
+  String? fileName,
+  bool showDialog = true,
+}) async {
+  if (!Platform.isWindows) {
+    PermissionStatus status = await Permission.storage.status;
+    if (status.isDenied) {
+      await [
+        Permission.storage,
+        Permission.accessMediaLocation,
+        Permission.mediaLibrary,
+      ].request();
+    }
+    status = await Permission.storage.status;
+    if (status.isPermanentlyDenied) {
+      await openAppSettings();
+    }
+  }
+  final String savePath = path ??
+      await Picker.selectFolder(
+        context: context,
+        message: AppLocalizations.of(context)!.selectBackLocation,
+      );
+  if (savePath.trim() != '') {
+    try {
+      final saveDir = Directory(savePath);
+      final List<File> files = [];
+      final List boxNames = [];
+
+      for (int i = 0; i < items.length; i++) {
+        boxNames.addAll(boxNameData[items[i]]!);
+      }
+
+      for (int i = 0; i < boxNames.length; i++) {
+        await Hive.openBox(boxNames[i].toString());
+        try {
+          await File(Hive.box(boxNames[i].toString()).path!)
+              .copy('$savePath/${boxNames[i]}.hive');
+        } catch (e) {
+          await [
+            Permission.manageExternalStorage,
+          ].request();
+          await File(Hive.box(boxNames[i].toString()).path!)
+              .copy('$savePath/${boxNames[i]}.hive');
+        }
+
+        files.add(File('$savePath/${boxNames[i]}.hive'));
+      }
+
+      final now = DateTime.now();
+      final String time =
+          '${now.hour}${now.minute}_${now.day}${now.month}${now.year}';
+      final zipFile =
+          File('$savePath/${fileName ?? "IncognitoMusic_Backup_$time"}.zip');
+
+      await ZipFile.createFromFiles(
+        sourceDir: saveDir,
+        files: files,
+        zipFile: zipFile,
+      );
+      for (int i = 0; i < files.length; i++) {
+        files[i].delete();
+      }
+      if (showDialog) {
+        ShowSnackBar().showSnackBar(
+          context,
+          AppLocalizations.of(context)!.backupSuccess,
+        );
+      }
+    } catch (e) {
+      Logger.root.severe('Error in creating backup', e);
+      ShowSnackBar().showSnackBar(
+        context,
+        '${AppLocalizations.of(context)!.failedCreateBackup}\nError: $e',
+      );
+    }
+  } else {
+    ShowSnackBar().showSnackBar(
+      context,
+      AppLocalizations.of(context)!.noFolderSelected,
+    );
+  }
+}
 
 Future<void> restore(
   BuildContext context,
