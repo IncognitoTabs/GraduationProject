@@ -88,11 +88,12 @@ class HandleRoute {
 class SaavnUrlHandler extends StatelessWidget {
   final String token;
   final String type;
-  const SaavnUrlHandler({Key? key, required this.token, required this.type}) : super(key: key);
+  const SaavnUrlHandler({Key? key, required this.token, required this.type})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    SaavnAPI().getSongFromToken(token, type).then((value) {
+    MusicAPI().getSongFromToken(token, type).then((value) {
       if (type == 'song') {
         PlayerInvoke.init(
           songsList: value['songs'] as List,
@@ -126,7 +127,8 @@ class SaavnUrlHandler extends StatelessWidget {
 class SpotifyUrlHandler extends StatelessWidget {
   final String id;
   final String type;
-  const SpotifyUrlHandler({Key? key, required this.id, required this.type}) : super(key: key);
+  const SpotifyUrlHandler({Key? key, required this.id, required this.type})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +157,8 @@ class SpotifyUrlHandler extends StatelessWidget {
 class YtUrlHandler extends StatelessWidget {
   final String id;
   final String type;
-  const YtUrlHandler({Key? key, required this.id, required this.type}) : super(key: key);
+  const YtUrlHandler({Key? key, required this.id, required this.type})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -231,4 +234,3 @@ class OfflinePlayHandler extends StatelessWidget {
     return const SizedBox();
   }
 }
-

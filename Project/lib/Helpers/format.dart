@@ -534,7 +534,7 @@ class FormatResponse {
                 .get(item['id'].toString(), defaultValue: {}) as Map;
             if (cachedDetails.isEmpty) {
               cachedDetails =
-                  await SaavnAPI().fetchSongDetails(item['id'].toString());
+                  await MusicAPI().fetchSongDetails(item['id'].toString());
               Hive.box('cache')
                   .put(cachedDetails['id'].toString(), cachedDetails);
             }

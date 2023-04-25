@@ -23,7 +23,8 @@ import '../../CustomWidgets/copy_clipboard.dart';
 class ArtistSearchPage extends StatefulWidget {
   final Map data;
 
-  const ArtistSearchPage({Key? key, 
+  const ArtistSearchPage({
+    Key? key,
     required this.data,
   }) : super(key: key);
 
@@ -49,7 +50,7 @@ class _ArtistSearchPageState extends State<ArtistSearchPage> {
   Widget build(BuildContext context) {
     if (!status) {
       status = true;
-      SaavnAPI()
+      MusicAPI()
           .fetchArtistSongs(
         artistToken: widget.data['artistToken'].toString(),
         category: category,
@@ -212,7 +213,7 @@ class _ArtistSearchPageState extends State<ArtistSearchPage> {
                                                 seconds: 2,
                                               ),
                                             );
-                                            SaavnAPI().createRadio(
+                                            MusicAPI().createRadio(
                                               names: [
                                                 widget.data['title']
                                                         ?.toString() ??
@@ -224,7 +225,7 @@ class _ArtistSearchPageState extends State<ArtistSearchPage> {
                                               stationType: 'artist',
                                             ).then((value) {
                                               if (value != null) {
-                                                SaavnAPI()
+                                                MusicAPI()
                                                     .getRadioSongs(
                                                   stationId: value,
                                                 )
