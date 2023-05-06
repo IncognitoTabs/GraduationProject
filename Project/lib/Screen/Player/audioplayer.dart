@@ -6,34 +6,35 @@ import 'dart:ui' as ui;
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flip_card/flip_card.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:incognito_music/CustomWidgets/add_playlist.dart';
 import 'package:incognito_music/CustomWidgets/animated_text.dart';
 import 'package:incognito_music/CustomWidgets/copy_clipboard.dart';
 import 'package:incognito_music/CustomWidgets/download_button.dart';
 import 'package:incognito_music/CustomWidgets/empty_screen.dart';
+import 'package:incognito_music/CustomWidgets/equalizer.dart';
 import 'package:incognito_music/CustomWidgets/gradient_containers.dart';
 import 'package:incognito_music/CustomWidgets/like_button.dart';
 import 'package:incognito_music/CustomWidgets/popup.dart';
 import 'package:incognito_music/CustomWidgets/seek_bar.dart';
+import 'package:incognito_music/CustomWidgets/snack_bar.dart';
+import 'package:incognito_music/CustomWidgets/textinput_dialog.dart';
 import 'package:incognito_music/Helpers/lyrics.dart';
 import 'package:incognito_music/Helpers/mediaitem_converter.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flip_card/flip_card.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:get_it/get_it.dart';
-import 'package:hive/hive.dart';
 import 'package:incognito_music/Screen/Common/song_list.dart';
 import 'package:incognito_music/Screen/Search/albums.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../Helpers/config.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({Key? key}) : super(key: key);
@@ -43,11 +44,725 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
+  final String gradientType = Hive.box('settings')
+      .get('gradientType', defaultValue: 'halfDark')
+      .toString();
+  final bool getLyricsOnline =
+      Hive.box('settings').get('getLyricsOnline', defaultValue: true) as bool;
+
+  final MyTheme currentTheme = GetIt.I<MyTheme>();
+  final ValueNotifier<List<Color?>?> gradientColor =
+      ValueNotifier<List<Color?>?>(GetIt.I<MyTheme>().playGradientColor);
+  final PanelController _panelController = PanelController();
+  final AudioPlayerHandler audioHandler = GetIt.I<AudioPlayerHandler>();
+  GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
+  late Duration _time;
+
+  void sleepTimer(int time) {
+    audioHandler.customAction('sleepTimer', {'time': time});
+  }
+
+  void sleepCounter(int count) {
+    audioHandler.customAction('sleepCounter', {'count': count});
+  }
+
+  Future<dynamic> setTimer(
+    BuildContext context,
+    BuildContext? scaffoldContext,
+  ) {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: Center(
+            child: Text(
+              AppLocalizations.of(context)!.selectDur,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
+          ),
+          children: [
+            Center(
+              child: SizedBox(
+                height: 200,
+                width: 200,
+                child: CupertinoTheme(
+                  data: CupertinoThemeData(
+                    primaryColor: Theme.of(context).colorScheme.secondary,
+                    textTheme: CupertinoTextThemeData(
+                      dateTimePickerTextStyle: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                  ),
+                  child: CupertinoTimerPicker(
+                    mode: CupertinoTimerPickerMode.hm,
+                    onTimerDurationChanged: (value) {
+                      _time = value;
+                    },
+                  ),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.secondary,
+                  ),
+                  onPressed: () {
+                    sleepTimer(0);
+                    Navigator.pop(context);
+                  },
+                  child: Text(AppLocalizations.of(context)!.cancel),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    foregroundColor:
+                        Theme.of(context).colorScheme.secondary == Colors.white
+                            ? Colors.black
+                            : Colors.white,
+                  ),
+                  onPressed: () {
+                    sleepTimer(_time.inMinutes);
+                    Navigator.pop(context);
+                    ShowSnackBar().showSnackBar(
+                      context,
+                      '${AppLocalizations.of(context)!.sleepTimerSetFor} ${_time.inMinutes} ${AppLocalizations.of(context)!.minutes}',
+                    );
+                  },
+                  child: Text(AppLocalizations.of(context)!.ok),
+                ),
+                const SizedBox(
+                  width: 20,
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<dynamic> setCounter() async {
+    await showTextInputDialog(
+      context: context,
+      title: AppLocalizations.of(context)!.enterSongsCount,
+      initialText: '',
+      keyboardType: TextInputType.number,
+      onSubmitted: (String value) {
+        sleepCounter(
+          int.parse(value),
+        );
+        Navigator.pop(context);
+        ShowSnackBar().showSnackBar(
+          context,
+          '${AppLocalizations.of(context)!.sleepTimerSetFor} $value ${AppLocalizations.of(context)!.songs}',
+        );
+      },
+    );
+  }
+
+  void updateBackgroundColors(List<Color?> value) {
+    gradientColor.value = value;
+    return;
+  }
+
+  String format(String msg) {
+    return '${msg[0].toUpperCase()}${msg.substring(1)}'.replaceAll('_', ' ');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    BuildContext? scaffoldContext;
+
+    return Dismissible(
+      direction: DismissDirection.down,
+      background: const ColoredBox(color: Colors.transparent),
+      key: const Key('playScreen'),
+      onDismissed: (direction) {
+        Navigator.pop(context);
+      },
+      child: StreamBuilder<MediaItem?>(
+        stream: audioHandler.mediaItem,
+        builder: (context, snapshot) {
+          final MediaItem? mediaItem = snapshot.data;
+          if (mediaItem == null) return const SizedBox();
+          final offline =
+              !mediaItem.extras!['url'].toString().startsWith('http');
+          mediaItem.artUri.toString().startsWith('file')
+              ? getColors(
+                  imageProvider: FileImage(
+                    File(
+                      mediaItem.artUri!.toFilePath(),
+                    ),
+                  ),
+                  // useDominantAndDarkerColors: gradientType == 'halfLight' ||
+                  //     gradientType == 'fullLight' ||
+                  //     gradientType == 'fullMix',
+                ).then((value) => updateBackgroundColors(value))
+              : getColors(
+                  imageProvider: CachedNetworkImageProvider(
+                    mediaItem.artUri.toString(),
+                  ),
+                  // useDominantAndDarkerColors: gradientType == 'halfLight' ||
+                  //     gradientType == 'fullLight' ||
+                  //     gradientType == 'fullMix',
+                ).then((value) => updateBackgroundColors(value));
+          return ValueListenableBuilder(
+            valueListenable: gradientColor,
+            child: SafeArea(
+              child: Scaffold(
+                resizeToAvoidBottomInset: false,
+                backgroundColor: Colors.transparent,
+                appBar: AppBar(
+                  elevation: 0,
+                  backgroundColor: Colors.transparent,
+                  centerTitle: true,
+                  leading: IconButton(
+                    icon: const Icon(Icons.expand_more_rounded),
+                    tooltip: AppLocalizations.of(context)!.back,
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.lyrics_rounded),
+                      //     Image.asset(
+                      //   'assets/lyrics.png',
+                      // ),
+                      tooltip: AppLocalizations.of(context)!.lyrics,
+                      onPressed: () => cardKey.currentState!.toggleCard(),
+                    ),
+                    if (!offline)
+                      IconButton(
+                        icon: const Icon(Icons.share_rounded),
+                        tooltip: AppLocalizations.of(context)!.share,
+                        onPressed: () {
+                          Share.share(
+                            mediaItem.extras!['perma_url'].toString(),
+                          );
+                        },
+                      ),
+                    PopupMenuButton(
+                      icon: const Icon(
+                        Icons.more_vert_rounded,
+                      ),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(15.0),
+                        ),
+                      ),
+                      onSelected: (int? value) {
+                        if (value == 10) {
+                          final Map details =
+                              MediaItemConverter.mediaItemToMap(mediaItem);
+                          details['duration'] =
+                              '${int.parse(details["duration"].toString()) ~/ 60}:${int.parse(details["duration"].toString()) % 60}';
+                          // style: Theme.of(context).textTheme.caption,
+                          if (mediaItem.extras?['size'] != null) {
+                            details.addEntries([
+                              MapEntry(
+                                'date_modified',
+                                DateTime.fromMillisecondsSinceEpoch(
+                                  int.parse(
+                                        mediaItem.extras!['date_modified']
+                                            .toString(),
+                                      ) *
+                                      1000,
+                                ).toString().split('.').first,
+                              ),
+                              MapEntry(
+                                'size',
+                                '${((mediaItem.extras!['size'] as int) / (1024 * 1024)).toStringAsFixed(2)} MB',
+                              ),
+                            ]);
+                          }
+                          PopupDialog().showPopup(
+                            context: context,
+                            child: GradientCard(
+                              child: SingleChildScrollView(
+                                physics: const BouncingScrollPhysics(),
+                                padding: const EdgeInsets.all(25.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: details.keys.map((e) {
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 10),
+                                      child: SelectableText.rich(
+                                        TextSpan(
+                                          children: <TextSpan>[
+                                            TextSpan(
+                                              text: format(
+                                                '$e\n',
+                                              ),
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.normal,
+                                                fontSize: 12,
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall!
+                                                    .color,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '${details[e]}',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.normal,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        showCursor: true,
+                                        cursorColor: Colors.black,
+                                        cursorRadius: const Radius.circular(5),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        if (value == 5) {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              opaque: false,
+                              pageBuilder: (_, __, ___) => SongsListPage(
+                                listItem: {
+                                  'type': 'album',
+                                  'id': mediaItem.extras?['album_id'],
+                                  'title': mediaItem.album,
+                                  'image': mediaItem.artUri,
+                                },
+                              ),
+                            ),
+                          );
+                        }
+                        if (value == 4) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return const Equalizer();
+                            },
+                          );
+                        }
+                        if (value == 3) {
+                          launchUrl(
+                            Uri.parse(
+                              mediaItem.genre == 'YouTube'
+                                  ? 'https://youtube.com/watch?v=${mediaItem.id}'
+                                  : 'https://www.youtube.com/results?search_query=${mediaItem.title} by ${mediaItem.artist}',
+                            ),
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                        if (value == 1) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return SimpleDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                title: Text(
+                                  AppLocalizations.of(context)!.sleepTimer,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.all(10.0),
+                                children: [
+                                  ListTile(
+                                    title: Text(
+                                      AppLocalizations.of(context)!.sleepDur,
+                                    ),
+                                    subtitle: Text(
+                                      AppLocalizations.of(context)!.sleepDurSub,
+                                    ),
+                                    dense: true,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      setTimer(
+                                        context,
+                                        scaffoldContext,
+                                      );
+                                    },
+                                  ),
+                                  ListTile(
+                                    title: Text(
+                                      AppLocalizations.of(context)!.sleepAfter,
+                                    ),
+                                    subtitle: Text(
+                                      AppLocalizations.of(context)!
+                                          .sleepAfterSub,
+                                    ),
+                                    dense: true,
+                                    isThreeLine: true,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      setCounter();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                        if (value == 0) {
+                          AddToPlaylist().addToPlaylist(context, mediaItem);
+                        }
+                      },
+                      itemBuilder: (context) => offline
+                          ? [
+                              if (mediaItem.extras?['album_id'] != null)
+                                PopupMenuItem(
+                                  value: 5,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.album_rounded,
+                                        color:
+                                            Theme.of(context).iconTheme.color,
+                                      ),
+                                      const SizedBox(width: 10.0),
+                                      Text(
+                                        AppLocalizations.of(context)!.viewAlbum,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              PopupMenuItem(
+                                value: 1,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.timer,
+                                      color: Theme.of(context).iconTheme.color,
+                                    ),
+                                    const SizedBox(width: 10.0),
+                                    Text(
+                                      AppLocalizations.of(context)!.sleepTimer,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (Hive.box('settings').get(
+                                'supportEq',
+                                defaultValue: false,
+                              ) as bool)
+                                PopupMenuItem(
+                                  value: 4,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.equalizer_rounded,
+                                        color:
+                                            Theme.of(context).iconTheme.color,
+                                      ),
+                                      const SizedBox(width: 10.0),
+                                      Text(
+                                        AppLocalizations.of(context)!.equalizer,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              PopupMenuItem(
+                                value: 10,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_rounded,
+                                      color: Theme.of(context).iconTheme.color,
+                                    ),
+                                    const SizedBox(width: 10.0),
+                                    Text(
+                                      AppLocalizations.of(context)!.songInfo,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ]
+                          : [
+                              if (mediaItem.extras?['album_id'] != null)
+                                PopupMenuItem(
+                                  value: 5,
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.album_rounded,
+                                      ),
+                                      const SizedBox(width: 10.0),
+                                      Text(
+                                        AppLocalizations.of(context)!.viewAlbum,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              PopupMenuItem(
+                                value: 0,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.playlist_add_rounded,
+                                      color: Theme.of(context).iconTheme.color,
+                                    ),
+                                    const SizedBox(width: 10.0),
+                                    Text(
+                                      AppLocalizations.of(context)!
+                                          .addToPlaylist,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 1,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.timer,
+                                      color: Theme.of(context).iconTheme.color,
+                                    ),
+                                    const SizedBox(width: 10.0),
+                                    Text(
+                                      AppLocalizations.of(context)!.sleepTimer,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (Hive.box('settings').get(
+                                'supportEq',
+                                defaultValue: false,
+                              ) as bool)
+                                PopupMenuItem(
+                                  value: 4,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.equalizer_rounded,
+                                        color:
+                                            Theme.of(context).iconTheme.color,
+                                      ),
+                                      const SizedBox(width: 10.0),
+                                      Text(
+                                        AppLocalizations.of(context)!.equalizer,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              PopupMenuItem(
+                                value: 3,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      MdiIcons.youtube,
+                                      color: Theme.of(context).iconTheme.color,
+                                    ),
+                                    const SizedBox(width: 10.0),
+                                    Text(
+                                      mediaItem.genre == 'YouTube'
+                                          ? AppLocalizations.of(
+                                              context,
+                                            )!
+                                              .watchVideo
+                                          : AppLocalizations.of(
+                                              context,
+                                            )!
+                                              .searchVideo,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 10,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_rounded,
+                                      color: Theme.of(context).iconTheme.color,
+                                    ),
+                                    const SizedBox(width: 10.0),
+                                    Text(
+                                      AppLocalizations.of(context)!.songInfo,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                    )
+                  ],
+                ),
+                body: LayoutBuilder(
+                  builder: (
+                    BuildContext context,
+                    BoxConstraints constraints,
+                  ) {
+                    if (constraints.maxWidth > constraints.maxHeight) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          // Artwork
+                          ArtWorkWidget(
+                            cardKey: cardKey,
+                            mediaItem: mediaItem,
+                            width: min(
+                              constraints.maxHeight / 0.9,
+                              constraints.maxWidth / 1.8,
+                            ),
+                            audioHandler: audioHandler,
+                            offline: offline,
+                            getLyricsOnline: getLyricsOnline,
+                          ),
+
+                          // title and controls
+                          NameNControls(
+                            mediaItem: mediaItem,
+                            offline: offline,
+                            width: constraints.maxWidth / 2,
+                            height: constraints.maxHeight,
+                            panelController: _panelController,
+                            audioHandler: audioHandler,
+                          ),
+                        ],
+                      );
+                    }
+                    return Column(
+                      children: [
+                        // Artwork
+                        ArtWorkWidget(
+                          cardKey: cardKey,
+                          mediaItem: mediaItem,
+                          width: constraints.maxWidth,
+                          audioHandler: audioHandler,
+                          offline: offline,
+                          getLyricsOnline: getLyricsOnline,
+                        ),
+
+                        // title and controls
+                        NameNControls(
+                          mediaItem: mediaItem,
+                          offline: offline,
+                          width: constraints.maxWidth,
+                          height: constraints.maxHeight -
+                              (constraints.maxWidth * 0.85),
+                          panelController: _panelController,
+                          audioHandler: audioHandler,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                // }
+              ),
+            ),
+            builder:
+                (BuildContext context, List<Color?>? value, Widget? child) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 600),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: gradientType == 'simple'
+                        ? Alignment.topLeft
+                        : Alignment.topCenter,
+                    end: gradientType == 'simple'
+                        ? Alignment.bottomRight
+                        : (gradientType == 'halfLight' ||
+                                gradientType == 'halfDark')
+                            ? Alignment.center
+                            : Alignment.bottomCenter,
+                    colors: gradientType == 'simple'
+                        ? Theme.of(context).brightness == Brightness.dark
+                            ? currentTheme.getBackGradient()
+                            : [
+                                const Color(0xfff5f9ff),
+                                Colors.white,
+                              ]
+                        : Theme.of(context).brightness == Brightness.dark
+                            ? [
+                                if (gradientType == 'halfDark' ||
+                                    gradientType == 'fullDark')
+                                  value?[1] ?? Colors.grey[900]!
+                                else
+                                  value?[0] ?? Colors.grey[900]!,
+                                if (gradientType == 'fullMix')
+                                  value?[1] ?? Colors.black
+                                else
+                                  Colors.black
+                              ]
+                            : [
+                                value?[0] ?? const Color(0xfff5f9ff),
+                                Colors.white,
+                              ],
+                  ),
+                ),
+                child: child,
+              );
+            },
+          );
+          // );
+        },
+      ),
+    );
+  }
+  
+  Future<List<Color>> getColors({
+  required ImageProvider imageProvider,
+}) async {
+  PaletteGenerator paletteGenerator;
+  paletteGenerator = await PaletteGenerator.fromImageProvider(imageProvider);
+  final Color dominantColor =
+      paletteGenerator.dominantColor?.color ?? Colors.black;
+  final Color darkMutedColor =
+      paletteGenerator.darkMutedColor?.color ?? Colors.black;
+  final Color lightMutedColor =
+      paletteGenerator.lightMutedColor?.color ?? dominantColor;
+  if (dominantColor.computeLuminance() < darkMutedColor.computeLuminance()) {
+    // checks if the luminance of the darkMuted color is > than the luminance of the dominant
+    GetIt.I<MyTheme>().playGradientColor = [
+      darkMutedColor,
+      dominantColor,
+    ];
+    return [
+      darkMutedColor,
+      dominantColor,
+    ];
+  } else if (dominantColor == darkMutedColor) {
+    // if the two colors are the same, it will replace dominantColor by lightMutedColor
+    GetIt.I<MyTheme>().playGradientColor = [
+      lightMutedColor,
+      darkMutedColor,
+    ];
+    return [
+      lightMutedColor,
+      darkMutedColor,
+    ];
+  } else {
+    GetIt.I<MyTheme>().playGradientColor = [
+      dominantColor,
+      darkMutedColor,
+    ];
+    return [
+      dominantColor,
+      darkMutedColor,
+    ];
   }
 }
+
+}
+
+
 
 class QueueState {
   static const QueueState empty =

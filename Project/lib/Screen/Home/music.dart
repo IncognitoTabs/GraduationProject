@@ -2,9 +2,6 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
-import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:incognito_music/APIs/api.dart';
@@ -334,7 +331,7 @@ class _MusicHomePageState extends State<MusicHomePage>
                                           }),
                                     ),
                                     onTap: () async {
-                                      await Hive.box(name);
+                                      Hive.box(name);
                                       Navigator.push(
                                           context,
                                           MaterialPageRoute(

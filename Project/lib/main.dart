@@ -8,7 +8,6 @@ import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:incognito_music/Helpers/config.dart';
 import 'package:incognito_music/Helpers/countrycodes.dart';
@@ -19,9 +18,7 @@ import 'package:incognito_music/Screen/Home/home.dart';
 import 'package:incognito_music/Screen/Library/downloads.dart';
 import 'package:incognito_music/Screen/Library/nowplaying.dart';
 import 'package:incognito_music/Screen/Library/playlists.dart';
-import 'package:incognito_music/Screen/Library/recent.dart';
 import 'package:incognito_music/Screen/Library/stats.dart';
-import 'package:incognito_music/Screen/LocalMusic/downloaded_songs.dart';
 import 'package:incognito_music/Screen/Settings/setting.dart';
 import 'package:incognito_music/Screen/login/auth.dart';
 import 'package:incognito_music/Screen/login/pref.dart';
@@ -49,7 +46,7 @@ Future<void> main() async {
     setOptimalDisplayMode();
   }
   await startService();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 Future<void> setOptimalDisplayMode() async {
@@ -93,6 +90,8 @@ Future<void> openHiveBox(String boxName, {bool limit = false}) async {
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -102,6 +101,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  // ignore: unused_field
   Locale _locale = const Locale('en', '');
   late StreamSubscription _intentTextStreamSubscription;
   late StreamSubscription _intentDataStreamSubscription;
@@ -254,9 +254,9 @@ void setLocale(Locale value) {
           '/pref': (context) => const PrefScreen(),
           '/setting': (context) => const SettingPage(),
           // '/about': (context) => AboutScreen(),
-          '/playlists': (context) => PlaylistScreen(),
-          '/nowplaying': (context) => NowPlaying(),
-          '/recent': (context) => RecentlyPlayed(),
+          '/playlists': (context) => const PlaylistScreen(),
+          '/nowplaying': (context) => const NowPlaying(),
+          // '/recent': (context) => RecentlyPlayed(),
           '/downloads': (context) => const Downloads(),
           '/stats': (context) => const Stats(),
         },

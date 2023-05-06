@@ -2,9 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:incognito_music/CustomWidgets/copy_clipboard.dart';
 import 'package:incognito_music/CustomWidgets/gradient_containers.dart';
 import 'package:incognito_music/CustomWidgets/popup.dart';
 import 'package:incognito_music/CustomWidgets/snack_bar.dart';
@@ -18,7 +16,6 @@ import 'package:incognito_music/CustomWidgets/textinput_dialog.dart';
 import 'package:incognito_music/Helpers/config.dart';
 import 'package:incognito_music/Screen/Settings/player_gradient.dart';
 import 'package:incognito_music/Services/ext_storage_provider.dart';
-import 'package:incognito_music/Services/nav.dart';
 import 'package:incognito_music/main.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -3143,6 +3140,7 @@ class _SettingPageState extends State<SettingPage>
   bool get wantKeepAlive => sectionsToShow.value.contains('Settings');
 
   Future<void> main() async {
+    // ignore: unused_local_variable
     final PackageInfo packageInfo = await PackageInfo.fromPlatform();
     setState(() {});
   }
