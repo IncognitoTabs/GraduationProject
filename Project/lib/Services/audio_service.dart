@@ -158,7 +158,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
             Future.delayed(const Duration(seconds: 1), () async {
               if (item == mediaItem.value) {
                 if (item.genre != 'YouTube') {
-                  final List value = await SaavnAPI().getReco(item.id);
+                  final List value = await MusicAPI().getReco(item.id);
                   value.shuffle();
                   // final List value = await SaavnAPI().getRadioSongs(
                   //     stationId: stationId!, count: queueLength - index - 20);
@@ -783,6 +783,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
   }
 
   @override
+  // ignore: avoid_renaming_method_parameters
   Future<void> setShuffleMode(AudioServiceShuffleMode mode) async {
     final enabled = mode == AudioServiceShuffleMode.all;
     if (enabled) {

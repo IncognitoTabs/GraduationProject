@@ -15,8 +15,8 @@ class AlbumSearchPage extends StatefulWidget {
   final String query;
   final String type;
 
-  const AlbumSearchPage({Key? key, 
-
+  const AlbumSearchPage({
+    Key? key,
     required this.query,
     required this.type,
   }) : super(key: key);
@@ -55,7 +55,7 @@ class _AlbumSearchPageState extends State<AlbumSearchPage> {
     loading = true;
     switch (widget.type) {
       case 'Playlists':
-        SaavnAPI()
+        MusicAPI()
             .fetchAlbums(
           searchQuery: widget.query,
           type: 'playlist',
@@ -71,7 +71,7 @@ class _AlbumSearchPageState extends State<AlbumSearchPage> {
         });
         break;
       case 'Albums':
-        SaavnAPI()
+        MusicAPI()
             .fetchAlbums(
           searchQuery: widget.query,
           type: 'album',
@@ -87,7 +87,7 @@ class _AlbumSearchPageState extends State<AlbumSearchPage> {
         });
         break;
       case 'Artists':
-        SaavnAPI()
+        MusicAPI()
             .fetchAlbums(
           searchQuery: widget.query,
           type: 'artist',

@@ -10,8 +10,8 @@ class DownloadButton extends StatefulWidget {
   final Map data;
   final String? icon;
   final double? size;
-  const DownloadButton({Key? key, 
-    
+  const DownloadButton({
+    Key? key,
     required this.data,
     this.icon,
     this.size,
@@ -138,8 +138,8 @@ class _DownloadButtonState extends State<DownloadButton> {
 class MultiDownloadButton extends StatefulWidget {
   final List data;
   final String playlistName;
-  const MultiDownloadButton({Key? key, 
-    
+  const MultiDownloadButton({
+    Key? key,
     required this.data,
     required this.playlistName,
   }) : super(key: key);
@@ -248,7 +248,8 @@ class _MultiDownloadButtonState extends State<MultiDownloadButton> {
 class AlbumDownloadButton extends StatefulWidget {
   final String albumId;
   final String albumName;
-  const AlbumDownloadButton({Key? key, 
+  const AlbumDownloadButton({
+    Key? key,
     required this.albumId,
     required this.albumName,
   }) : super(key: key);
@@ -310,7 +311,7 @@ class _AlbumDownloadButtonState extends State<AlbumDownloadButton> {
                           '${AppLocalizations.of(context)!.downingAlbum} "${widget.albumName}"',
                         );
 
-                        data = (await SaavnAPI()
+                        data = (await MusicAPI()
                             .fetchAlbumSongs(widget.albumId))['songs'] as List;
                         for (final items in data) {
                           down.prepareDownload(

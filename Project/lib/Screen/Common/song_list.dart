@@ -39,8 +39,8 @@ import 'package:share_plus/share_plus.dart';
 class SongsListPage extends StatefulWidget {
   final Map listItem;
 
-  const SongsListPage({Key? key, 
-    
+  const SongsListPage({
+    Key? key,
     required this.listItem,
   }) : super(key: key);
 
@@ -81,7 +81,7 @@ class _SongsListPageState extends State<SongsListPage> {
     try {
       switch (widget.listItem['type'].toString()) {
         case 'songs':
-          SaavnAPI()
+          MusicAPI()
               .fetchSongSearchResults(
             searchQuery: widget.listItem['id'].toString(),
             page: page,
@@ -102,7 +102,7 @@ class _SongsListPageState extends State<SongsListPage> {
           });
           break;
         case 'album':
-          SaavnAPI()
+          MusicAPI()
               .fetchAlbumSongs(widget.listItem['id'].toString())
               .then((value) {
             setState(() {
@@ -120,7 +120,7 @@ class _SongsListPageState extends State<SongsListPage> {
           });
           break;
         case 'playlist':
-          SaavnAPI()
+          MusicAPI()
               .fetchPlaylistSongs(widget.listItem['id'].toString())
               .then((value) {
             setState(() {
@@ -138,7 +138,7 @@ class _SongsListPageState extends State<SongsListPage> {
           });
           break;
         case 'mix':
-          SaavnAPI()
+          MusicAPI()
               .getSongFromToken(
             widget.listItem['perma_url'].toString().split('/').last,
             'mix',
@@ -160,7 +160,7 @@ class _SongsListPageState extends State<SongsListPage> {
           });
           break;
         case 'show':
-          SaavnAPI()
+          MusicAPI()
               .getSongFromToken(
             widget.listItem['perma_url'].toString().split('/').last,
             'show',

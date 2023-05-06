@@ -8,7 +8,7 @@ import 'package:logging/logging.dart';
 
 import '../Helpers/format.dart';
 
-class SaavnAPI {
+class MusicAPI {
   List preferredLanguages = Hive.box('settings')
       .get('preferredLanguage', defaultValue: ['English']) as List;
   Map<String, String> headers = {};
