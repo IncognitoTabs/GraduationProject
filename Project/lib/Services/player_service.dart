@@ -42,21 +42,17 @@ class PlayerInvoke {
 
     if (!fromMiniplayer) {
       if (!Platform.isAndroid) {
-        // Don't know why but it fixes the playback issue with iOS Side
         audioHandler.stop();
       }
       if (offline) {
         fromDownloads
             ? setDownValues(finalList, globalIndex)
-            : (Platform.isWindows || Platform.isLinux)
-                ? setOffDesktopValues(finalList, globalIndex)
-                : setOffValues(finalList, globalIndex);
+            : setOffValues(finalList, globalIndex);
       } else {
         setValues(
           finalList,
           globalIndex,
           recommend: recommend,
-          // playlistBox: playlistBox,
         );
       }
     }
@@ -98,45 +94,6 @@ class PlayerInvoke {
     return tempDict;
   }
 
-  static void setOffDesktopValues(List response, int index) {
-    getTemporaryDirectory().then((tempDir) async {
-      final File file = File('${tempDir.path}/cover.jpg');
-      if (!await file.exists()) {
-        final byteData = await rootBundle.load('assets/cover.jpg');
-        await file.writeAsBytes(
-          byteData.buffer
-              .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
-        );
-      }
-      final List<MediaItem> queue = [];
-      queue.addAll(
-        response.map(
-          (song) => MediaItem(
-            id: song['id'].toString(),
-            album: song['album'].toString(),
-            artist: song['artist'].toString(),
-            duration: Duration(
-              seconds: int.parse(
-                (song['duration'] == null || song['duration'] == 'null')
-                    ? '180'
-                    : song['duration'].toString(),
-              ),
-            ),
-            title: song['title'].toString(),
-            artUri: Uri.file(file.path),
-            genre: song['genre'].toString(),
-            extras: {
-              'url': song['path'].toString(),
-              'subtitle': song['subtitle'],
-              'quality': song['quality'],
-            },
-          ),
-        ),
-      );
-      updateNplay(queue, index);
-    });
-  }
-
   static void setOffValues(List response, int index) {
     getTemporaryDirectory().then((tempDir) async {
       final File file = File('${tempDir.path}/cover.jpg');
@@ -168,8 +125,6 @@ class PlayerInvoke {
   }
 
   static Future<void> refreshYtLink(Map playItem) async {
-    // final bool cacheSong =
-    // Hive.box('settings').get('cacheSong', defaultValue: true) as bool;
     final int expiredAt = int.parse((playItem['expire_at'] ?? '0').toString());
     if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 > expiredAt) {
       Logger.root.info(
@@ -218,7 +173,6 @@ class PlayerInvoke {
     List response,
     int index, {
     bool recommend = true,
-    // String? playlistBox,
   }) async {
     final List<MediaItem> queue = [];
     final Map playItem = response[index] as Map;
@@ -236,7 +190,6 @@ class PlayerInvoke {
         (song) => MediaItemConverter.mapToMediaItem(
           song as Map,
           autoplay: recommend,
-          // playlistBox: playlistBox,
         ),
       ),
     );

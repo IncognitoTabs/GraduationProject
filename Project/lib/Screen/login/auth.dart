@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
+import 'package:incognito_music/Helpers/firebase.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../CustomWidgets/gradient_containers.dart';
 import '../../Helpers/backup_restore.dart';
 import '../../Helpers/config.dart';
-import '../../Helpers/supabase.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -26,6 +26,11 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   Future _addUserData(String name) async {
     await Hive.box('settings').put('name', name.trim());
     final DateTime now = DateTime.now();
@@ -38,10 +43,10 @@ class _AuthScreenState extends State<AuthScreen> {
       ..join('.');
 
     final String userId = uuid.v1();
-    await SupaBase().createUser({
+    await FireBase().createUser({
       'id': userId,
       'name': name,
-      'accountCreatedOn': '${createDate[0]} IST',
+      'accountCreatedOn': '${createDate[0]}',
       'timeZone':
           "Zone: ${now.timeZoneName} Offset: ${now.timeZoneOffset.toString().replaceAll('.000000', '')}",
     });
@@ -115,7 +120,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               children: [
                                 RichText(
                                   text: TextSpan(
-                                    text: 'Black\nHole\n',
+                                    text: 'Incognito\n',
                                     style: TextStyle(
                                       height: 0.97,
                                       fontSize: 80,
@@ -255,30 +260,30 @@ class _AuthScreenState extends State<AuthScreen> {
                                     ),
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 20.0,
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            AppLocalizations.of(context)!
-                                                .disclaimer,
-                                          ),
-                                        ],
-                                      ),
-                                      Text(
-                                        AppLocalizations.of(context)!
-                                            .disclaimerText,
-                                        style: TextStyle(
-                                          color: Colors.grey.withOpacity(0.7),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                // Padding(
+                                //   padding: const EdgeInsets.symmetric(
+                                //     vertical: 20.0,
+                                //   ),
+                                //   child: Column(
+                                //     children: [
+                                //       Row(
+                                //         children: [
+                                //           Text(
+                                //             AppLocalizations.of(context)!
+                                //                 .disclaimer,
+                                //           ),
+                                //         ],
+                                //       ),
+                                //       Text(
+                                //         AppLocalizations.of(context)!
+                                //             .disclaimerText,
+                                //         style: TextStyle(
+                                //           color: Colors.grey.withOpacity(0.7),
+                                //         ),
+                                //       ),
+                                //     ],
+                                //   ),
+                                // ),
                               ],
                             ),
                           ],

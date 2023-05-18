@@ -90,11 +90,13 @@ class Lyrics {
     return lyrics.trim();
   }
 
-  static Future<String> getOffLyrics(String path) async {
+  static Future<String?> getOffLyrics(String path) async {
     try {
       final Audiotagger tagger = Audiotagger();
       final Tag? tags = await tagger.readTags(path: path);
-      return tags?.lyrics ?? '';
+      return tags?.lyrics?.contains('[NOSUB]') == true
+          ? tags?.lyrics?.substring(6)
+          : tags?.lyrics ?? '';
     } catch (e) {
       return '';
     }

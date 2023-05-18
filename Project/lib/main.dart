@@ -26,6 +26,7 @@ import 'package:incognito_music/Services/audio_service.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'Helpers/route_handler.dart';
 import 'Screen/Player/audioplayer.dart';
@@ -33,6 +34,7 @@ import 'Theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   Paint.enableDithering = true;
 
   await Hive.initFlutter();
@@ -58,7 +60,8 @@ Future<void> startService() async {
   final AudioPlayerHandler audioHandler = await AudioService.init(
     builder: () => AudioPlayerHandlerImpl(),
     // config: AudioServiceConfig(
-    //   androidNotificationChannelId: 'com.hoangminhtai.mobile_project.channel.audio',
+    //   androidNotificationChannelId:
+    //       'com.hoangminhtai.mobile_project.channel.audio',
     //   androidNotificationChannelName: 'Incognito Music',
     //   androidNotificationIcon: 'drawable/icon-white-trans',
     //   androidShowNotificationBadge: true,
@@ -92,7 +95,6 @@ Future<void> openHiveBox(String boxName, {bool limit = false}) async {
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-
   @override
   State<MyApp> createState() => _MyAppState();
 
@@ -117,6 +119,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+
     final String systemLangCode = Platform.localeName.substring(0, 2);
     if (ConstantCodes.languageCodes.values.contains(systemLangCode)) {
       _locale = Locale(systemLangCode);
@@ -200,7 +203,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-void setLocale(Locale value) {
+  void setLocale(Locale value) {
     setState(() {
       _locale = value;
     });
@@ -208,7 +211,7 @@ void setLocale(Locale value) {
 
   Widget initialFuntion() {
     return Hive.box('settings').get('userId') != null
-        ? const HomePage() /*DownloadedSongs()*/
+        ? const HomePage()
         : const AuthScreen();
   }
 
@@ -256,7 +259,6 @@ void setLocale(Locale value) {
           // '/about': (context) => AboutScreen(),
           '/playlists': (context) => const PlaylistScreen(),
           '/nowplaying': (context) => const NowPlaying(),
-          // '/recent': (context) => RecentlyPlayed(),
           '/downloads': (context) => const Downloads(),
           '/stats': (context) => const Stats(),
         },
