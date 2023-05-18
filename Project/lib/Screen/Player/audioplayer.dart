@@ -34,6 +34,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../Helpers/auto_update_database.dart';
 import '../../Helpers/config.dart';
 
 class PlayScreen extends StatefulWidget {
@@ -716,53 +717,50 @@ class _PlayScreenState extends State<PlayScreen> {
       ),
     );
   }
-  
+
   Future<List<Color>> getColors({
-  required ImageProvider imageProvider,
-}) async {
-  PaletteGenerator paletteGenerator;
-  paletteGenerator = await PaletteGenerator.fromImageProvider(imageProvider);
-  final Color dominantColor =
-      paletteGenerator.dominantColor?.color ?? Colors.black;
-  final Color darkMutedColor =
-      paletteGenerator.darkMutedColor?.color ?? Colors.black;
-  final Color lightMutedColor =
-      paletteGenerator.lightMutedColor?.color ?? dominantColor;
-  if (dominantColor.computeLuminance() < darkMutedColor.computeLuminance()) {
-    // checks if the luminance of the darkMuted color is > than the luminance of the dominant
-    GetIt.I<MyTheme>().playGradientColor = [
-      darkMutedColor,
-      dominantColor,
-    ];
-    return [
-      darkMutedColor,
-      dominantColor,
-    ];
-  } else if (dominantColor == darkMutedColor) {
-    // if the two colors are the same, it will replace dominantColor by lightMutedColor
-    GetIt.I<MyTheme>().playGradientColor = [
-      lightMutedColor,
-      darkMutedColor,
-    ];
-    return [
-      lightMutedColor,
-      darkMutedColor,
-    ];
-  } else {
-    GetIt.I<MyTheme>().playGradientColor = [
-      dominantColor,
-      darkMutedColor,
-    ];
-    return [
-      dominantColor,
-      darkMutedColor,
-    ];
+    required ImageProvider imageProvider,
+  }) async {
+    PaletteGenerator paletteGenerator;
+    paletteGenerator = await PaletteGenerator.fromImageProvider(imageProvider);
+    final Color dominantColor =
+        paletteGenerator.dominantColor?.color ?? Colors.black;
+    final Color darkMutedColor =
+        paletteGenerator.darkMutedColor?.color ?? Colors.black;
+    final Color lightMutedColor =
+        paletteGenerator.lightMutedColor?.color ?? dominantColor;
+    if (dominantColor.computeLuminance() < darkMutedColor.computeLuminance()) {
+      // checks if the luminance of the darkMuted color is > than the luminance of the dominant
+      GetIt.I<MyTheme>().playGradientColor = [
+        darkMutedColor,
+        dominantColor,
+      ];
+      return [
+        darkMutedColor,
+        dominantColor,
+      ];
+    } else if (dominantColor == darkMutedColor) {
+      // if the two colors are the same, it will replace dominantColor by lightMutedColor
+      GetIt.I<MyTheme>().playGradientColor = [
+        lightMutedColor,
+        darkMutedColor,
+      ];
+      return [
+        lightMutedColor,
+        darkMutedColor,
+      ];
+    } else {
+      GetIt.I<MyTheme>().playGradientColor = [
+        dominantColor,
+        darkMutedColor,
+      ];
+      return [
+        dominantColor,
+        darkMutedColor,
+      ];
+    }
   }
 }
-
-}
-
-
 
 class QueueState {
   static const QueueState empty =
@@ -779,7 +777,7 @@ class QueueState {
     this.shuffleIndices,
     this.repeatMode,
   );
-  
+
   bool get hasPrevious =>
       repeatMode != AudioServiceRepeatMode.none || (queueIndex ?? 0) > 0;
   bool get hasNext =>
@@ -805,7 +803,8 @@ class ControlButtons extends StatelessWidget {
   final Color? dominantColor;
 
   const ControlButtons(
-    this.audioHandler, {Key? key, 
+    this.audioHandler, {
+    Key? key,
     this.shuffle = false,
     this.miniplayer = false,
     this.buttons = const ['Previous', 'Play/Pause', 'Next'],
@@ -985,7 +984,8 @@ class ArtWorkWidget extends StatefulWidget {
   final double width;
   final AudioPlayerHandler audioHandler;
 
-  const ArtWorkWidget({Key? key, 
+  const ArtWorkWidget({
+    Key? key,
     required this.cardKey,
     required this.mediaItem,
     required this.width,
@@ -1616,7 +1616,8 @@ class NowPlayingStream extends StatelessWidget {
   final bool head;
   final double headHeight;
 
-  const NowPlayingStream({Key? key, 
+  const NowPlayingStream({
+    Key? key,
     required this.audioHandler,
     this.scrollController,
     this.panelController,
@@ -1686,9 +1687,13 @@ class NowPlayingStream extends StatelessWidget {
           shrinkWrap: true,
           itemCount: queue.length,
           itemBuilder: (context, index) {
+            bool isNowPlaying = index == queueState.queueIndex;
+            AutoUpdateDB.addSong(queue[index]);
+            // //TODO: cannot add stats to DB
+            if (isNowPlaying) AutoUpdateDB.addStats(queue[index].id);
             return Dismissible(
               key: ValueKey(queue[index].id),
-              direction: index == queueState.queueIndex
+              direction: isNowPlaying
                   ? DismissDirection.none
                   : DismissDirection.horizontal,
               onDismissed: (dir) {
@@ -1699,10 +1704,10 @@ class NowPlayingStream extends StatelessWidget {
                 child: ListTile(
                   contentPadding:
                       const EdgeInsets.only(left: 16.0, right: 10.0),
-                  selected: index == queueState.queueIndex,
+                  selected: isNowPlaying,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: (index == queueState.queueIndex)
+                    children: (isNowPlaying)
                         ? [
                             IconButton(
                               icon: const Icon(
@@ -1755,7 +1760,7 @@ class NowPlayingStream extends StatelessWidget {
                             ReorderableDragStartListener(
                               key: Key(queue[index].id),
                               index: index,
-                              enabled: index != queueState.queueIndex,
+                              enabled: !isNowPlaying,
                               child: const Icon(Icons.drag_handle_rounded),
                             ),
                           ],
@@ -1859,9 +1864,8 @@ class NowPlayingStream extends StatelessWidget {
                     queue[index].title,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontWeight: index == queueState.queueIndex
-                          ? FontWeight.w600
-                          : FontWeight.normal,
+                      fontWeight:
+                          isNowPlaying ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                   subtitle: Text(
@@ -1890,7 +1894,8 @@ class NameNControls extends StatelessWidget {
   final PanelController panelController;
   final AudioPlayerHandler audioHandler;
 
-  const NameNControls({Key? key, 
+  const NameNControls({
+    Key? key,
     required this.width,
     required this.height,
     required this.mediaItem,

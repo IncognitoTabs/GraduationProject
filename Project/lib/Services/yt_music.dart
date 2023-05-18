@@ -295,7 +295,6 @@ Map<String, String> initializeHeaders() {
             'text',
             'runs'
           ]) as List;
-          // Logger.root.info('Looping child elements of "$title"');
           int count = 0;
           String type = '';
           String album = '';
@@ -457,16 +456,6 @@ Map<String, String> initializeHeaders() {
           }
         }
       }
-      // final adaptiveFormats =
-      //     await nav(response, ['streamingData', 'adaptiveFormats']) as List;
-      // for (final element in adaptiveFormats) {
-      //   if (element['bitrate'] != null) {
-      //     if (int.parse(element['bitrate'].toString()) > maxBitrate) {
-      //       maxBitrate = int.parse(element['bitrate'].toString());
-      //       url = element['signatureCipher'].toString();
-      //     }
-      //   }
-      // }
       final videoDetails = await nav(response, ['videoDetails']) as Map;
       final reg = RegExp('url=(.*)');
       final matches = reg.firstMatch(url!);

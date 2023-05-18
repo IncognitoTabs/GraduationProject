@@ -80,10 +80,10 @@ class _DownloadedSongsState extends State<DownloadedSongs>
   };
   @override
   void initState() {
+    super.initState();
     _tabController =
         TabController(length: widget.showPlaylists ? 5 : 4, vsync: this);
     getData();
-    super.initState();
   }
 
   Future<void> getData() async {
@@ -103,12 +103,12 @@ class _DownloadedSongsState extends State<DownloadedSongs>
         _songs = receivedSongs
             .where(
               (i) =>
-                  (i.duration ?? 60000) > 1000 * minDuration 
-                  &&(i.isMusic! || i.isPodcast! || i.isAudioBook!) 
-                  &&(includeOrExclude
+                  (i.duration ?? 60000) > 1000 * minDuration &&
+                  (i.isMusic! || i.isPodcast! || i.isAudioBook!) &&
+                  (includeOrExclude
                       ? checkIncludedOrExcluded(i)
-                      : !checkIncludedOrExcluded(i))
-                  &&(RegExp(r'20').matchAsPrefix(i.displayName, 0)== null),
+                      : !checkIncludedOrExcluded(i)) &&
+                  (RegExp(r'20').matchAsPrefix(i.displayName, 0) == null),
             )
             .toList();
       } else {
@@ -597,9 +597,8 @@ class _AlbumsTabState extends State<AlbumsTab>
               context,
               MaterialPageRoute(
                 builder: (context) => DownloadedSongs(
-                  title: widget.albumsList[index],
-                  cachedSongs: widget.albums[widget.albumsList[index]]
-                ),
+                    title: widget.albumsList[index],
+                    cachedSongs: widget.albums[widget.albumsList[index]]),
               ),
             );
           },
