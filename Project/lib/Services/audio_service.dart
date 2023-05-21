@@ -7,6 +7,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:incognito_music/APIs/api.dart';
+import 'package:incognito_music/Helpers/auto_update_database.dart';
 import 'package:incognito_music/Helpers/mediaitem_converter.dart';
 import 'package:incognito_music/Helpers/playlist.dart';
 import 'package:incognito_music/Screen/Player/audioplayer.dart';
@@ -144,10 +145,10 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
       }
 
       if (item.artUri.toString().startsWith('http')) {
-        if (item.genre != 'YouTube') {
-          addRecentlyPlayed(item);
-          _recentSubject.add([item]);
-        }
+        // if (item.genre != 'YouTube') {
+        addRecentlyPlayed(item);
+        _recentSubject.add([item]);
+        // }
 
         if (recommend && item.extras!['autoplay'] as bool) {
           final List<MediaItem> mediaQueue = queue.value;
@@ -290,43 +291,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
   Future<void> refreshLink(Map newData) async {
     Logger.root.info('player | received new link for ${newData['title']}');
     final MediaItem newItem = MediaItemConverter.mapToMediaItem(newData);
-    // final String? boxName = mediaItem.extras!['playlistBox']?.toString();
-    // if (boxName != null) {
-    //   Logger.root.info('linked with playlist $boxName');
-    //   if (Hive.box(mediaItem.extras!['playlistBox'].toString())
-    //       .containsKey(mediaItem.id)) {
-    //     Logger.root.info('updating item in playlist $boxName');
-    //     Hive.box(mediaItem.extras!['playlistBox'].toString()).put(
-    //       mediaItem.id,
-    //       MediaItemConverter.mediaItemToMap(newItem),
-    //     );
-    //     // put(
-    //     //   mediaItem.id,
-    //     //   MediaItemConverter.mediaItemToMap(newItem),
-    //     // );
-    //   }
-    // }
-    // Logger.root.info('player | inserting refreshed item');
-    // late AudioSource audioSource;
-    // if (cacheSong) {
-    //   audioSource = LockCachingAudioSource(
-    //     Uri.parse(
-    //       newItem.extras!['url'].toString(),
-    //     ),
-    //   );
-    // } else {
-    //   audioSource = AudioSource.uri(
-    //     Uri.parse(
-    //       newItem.extras!['url'].toString(),
-    //     ),
-    //   );
-    // }
-    // final index = queue.value.indexWhere((item) => item.id == newItem.id);
-    // _mediaItemExpando[audioSource] = newItem;
-    // _playlist
-    // .removeAt(index)
-    // .then((value) =>
-    // _playlist.insert(index, audioSource));
+    AutoUpdateDB.addSong(newItem);
     addQueueItem(newItem);
   }
 
@@ -521,6 +486,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
         (mostPlayed['playCount'] as int? ?? 0)) {
       Hive.box('stats').put('mostPlayed', songStats);
     }
+    await AutoUpdateDB.addStats(mediaitem.id);
     Logger.root.info('adding ${mediaitem.id} data to stats');
 
     final Map item = MediaItemConverter.mediaItemToMap(mediaitem);

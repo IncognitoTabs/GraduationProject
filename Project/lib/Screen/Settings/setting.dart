@@ -56,7 +56,7 @@ class _SettingPageState extends State<SettingPage>
   String ytDownloadQuality = Hive.box('settings')
       .get('ytDownloadQuality', defaultValue: 'High') as String;
   String lang =
-      Hive.box('settings').get('lang', defaultValue: 'English') as String;
+      Hive.box('settings').get('lang', defaultValue: 'Vietnamese') as String;
   String canvasColor =
       Hive.box('settings').get('canvasColor', defaultValue: 'Grey') as String;
   String cardColor =
@@ -92,7 +92,7 @@ class _SettingPageState extends State<SettingPage>
   final ValueNotifier<List> sectionsToShow = ValueNotifier<List>(
     Hive.box('settings').get(
       'sectionsToShow',
-      defaultValue: ['Home', 'Top Charts', 'YouTube', 'Library'],
+      defaultValue: ['Home', 'YouTube', 'Library', 'Settings'],
     ) as List,
   );
 
@@ -1832,924 +1832,913 @@ class _SettingPageState extends State<SettingPage>
                 ],
               )),
             ),
-            Padding(padding: const EdgeInsets.all(10.0),
-            child: GradientCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
-                  child: Text(AppLocalizations.of(context)!.down,
-                  style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),)),
-                            ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .downQuality,
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: GradientCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                        padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+                        child: Text(
+                          AppLocalizations.of(context)!.down,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.secondary,
                           ),
-                          subtitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .downQualitySub,
-                          ),
-                          onTap: () {},
-                          trailing: DropdownButton(
-                            value: downloadQuality,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color:
-                                  Theme.of(context).textTheme.bodyLarge!.color,
-                            ),
-                            underline: const SizedBox(),
-                            onChanged: (String? newValue) {
-                              if (newValue != null) {
-                                setState(
-                                  () {
-                                    downloadQuality = newValue;
-                                    Hive.box('settings')
-                                        .put('downloadQuality', newValue);
-                                  },
-                                );
-                              }
-                            },
-                            items: <String>['96 kbps', '160 kbps', '320 kbps']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(
-                                  value,
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          dense: true,
+                        )),
+                    ListTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .downQuality,
+                      ),
+                      subtitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .downQualitySub,
+                      ),
+                      onTap: () {},
+                      trailing: DropdownButton(
+                        value: downloadQuality,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).textTheme.bodyLarge!.color,
                         ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .ytDownQuality,
-                          ),
-                          subtitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .ytDownQualitySub,
-                          ),
-                          onTap: () {},
-                          trailing: DropdownButton(
-                            value: ytDownloadQuality,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color:
-                                  Theme.of(context).textTheme.bodyLarge!.color,
+                        underline: const SizedBox(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(
+                              () {
+                                downloadQuality = newValue;
+                                Hive.box('settings')
+                                    .put('downloadQuality', newValue);
+                              },
+                            );
+                          }
+                        },
+                        items: <String>['96 kbps', '160 kbps', '320 kbps']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
                             ),
-                            underline: const SizedBox(),
-                            onChanged: (String? newValue) {
-                              if (newValue != null) {
-                                setState(
-                                  () {
-                                    ytDownloadQuality = newValue;
-                                    Hive.box('settings')
-                                        .put('ytDownloadQuality', newValue);
-                                  },
-                                );
-                              }
-                            },
-                            items: <String>['Low', 'High']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(
-                                  value,
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          dense: true,
+                          );
+                        }).toList(),
+                      ),
+                      dense: true,
+                    ),
+                    ListTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .ytDownQuality,
+                      ),
+                      subtitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .ytDownQualitySub,
+                      ),
+                      onTap: () {},
+                      trailing: DropdownButton(
+                        value: ytDownloadQuality,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).textTheme.bodyLarge!.color,
                         ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .downLocation,
-                          ),
-                          subtitle: Text(downloadPath),
-                          trailing: TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: Theme.of(context).brightness ==
-                                      Brightness.dark
+                        underline: const SizedBox(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(
+                              () {
+                                ytDownloadQuality = newValue;
+                                Hive.box('settings')
+                                    .put('ytDownloadQuality', newValue);
+                              },
+                            );
+                          }
+                        },
+                        items: <String>['Low', 'High']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      dense: true,
+                    ),
+                    ListTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .downLocation,
+                      ),
+                      subtitle: Text(downloadPath),
+                      trailing: TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor:
+                              Theme.of(context).brightness == Brightness.dark
                                   ? Colors.white
                                   : Colors.grey[700],
-                            ),
-                            onPressed: () async {
-                              downloadPath =
-                                  await ExtStorageProvider.getExtStorage(
-                                        dirName: 'Music',
-                                        writeAccess: true,
-                                      ) ??
-                                      '/storage/emulated/0/Music';
-                              Hive.box('settings')
-                                  .put('downloadPath', downloadPath);
-                              setState(
-                                () {},
-                              );
-                            },
-                            child: Text(
-                              AppLocalizations.of(
-                                context,
-                              )!
-                                  .reset,
-                            ),
-                          ),
-                          onTap: () async {
-                            final String temp = await Picker.selectFolder(
-                              context: context,
-                              message: AppLocalizations.of(
-                                context,
-                              )!
-                                  .selectDownLocation,
-                            );
-                            if (temp.trim() != '') {
-                              downloadPath = temp;
-                              Hive.box('settings').put('downloadPath', temp);
-                              setState(
-                                () {},
-                              );
-                            } else {
-                              ShowSnackBar().showSnackBar(
-                                context,
-                                AppLocalizations.of(
-                                  context,
-                                )!
-                                    .noFolderSelected,
-                              );
-                            }
-                          },
-                          dense: true,
                         ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .downFilename,
-                          ),
-                          subtitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .downFilenameSub,
-                          ),
-                          dense: true,
-                          onTap: () {
-                            showModalBottomSheet(
-                              isDismissible: true,
-                              backgroundColor: Colors.transparent,
-                              context: context,
-                              builder: (BuildContext context) {
-                                return BottomGradientContainer(
-                                  borderRadius: BorderRadius.circular(
-                                    20.0,
-                                  ),
-                                  child: ListView(
-                                    physics: const BouncingScrollPhysics(),
-                                    shrinkWrap: true,
-                                    padding: const EdgeInsets.fromLTRB(
-                                      0,
-                                      10,
-                                      0,
-                                      10,
-                                    ),
-                                    children: [
-                                      CheckboxListTile(
-                                        activeColor: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                        title: Text(
-                                          '${AppLocalizations.of(context)!.title} - ${AppLocalizations.of(context)!.artist}',
-                                        ),
-                                        value: downFilename == 0,
-                                        selected: downFilename == 0,
-                                        onChanged: (bool? val) {
-                                          if (val ?? false) {
-                                            downFilename = 0;
-                                            settingsBox.put('downFilename', 0);
-                                            Navigator.pop(context);
-                                          }
-                                        },
-                                      ),
-                                      CheckboxListTile(
-                                        activeColor: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                        title: Text(
-                                          '${AppLocalizations.of(context)!.artist} - ${AppLocalizations.of(context)!.title}',
-                                        ),
-                                        value: downFilename == 1,
-                                        selected: downFilename == 1,
-                                        onChanged: (val) {
-                                          if (val ?? false) {
-                                            downFilename = 1;
-                                            settingsBox.put('downFilename', 1);
-                                            Navigator.pop(context);
-                                          }
-                                        },
-                                      ),
-                                      CheckboxListTile(
-                                        activeColor: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                        title: Text(
-                                          AppLocalizations.of(context)!.title,
-                                        ),
-                                        value: downFilename == 2,
-                                        selected: downFilename == 2,
-                                        onChanged: (val) {
-                                          if (val ?? false) {
-                                            downFilename = 2;
-                                            settingsBox.put('downFilename', 2);
-                                            Navigator.pop(context);
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
+                        onPressed: () async {
+                          downloadPath = await ExtStorageProvider.getExtStorage(
+                                dirName: 'Music',
+                                writeAccess: true,
+                              ) ??
+                              '/storage/emulated/0/Music';
+                          Hive.box('settings')
+                              .put('downloadPath', downloadPath);
+                          setState(
+                            () {},
+                          );
+                        },
+                        child: Text(
+                          AppLocalizations.of(
+                            context,
+                          )!
+                              .reset,
                         ),
-                        BoxSwitchTile(
-                          title: Text(
+                      ),
+                      onTap: () async {
+                        final String temp = await Picker.selectFolder(
+                          context: context,
+                          message: AppLocalizations.of(
+                            context,
+                          )!
+                              .selectDownLocation,
+                        );
+                        if (temp.trim() != '') {
+                          downloadPath = temp;
+                          Hive.box('settings').put('downloadPath', temp);
+                          setState(
+                            () {},
+                          );
+                        } else {
+                          ShowSnackBar().showSnackBar(
+                            context,
                             AppLocalizations.of(
                               context,
                             )!
-                                .createAlbumFold,
-                          ),
-                          subTitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .createAlbumFoldSub,
-                          ),
-                          keyName: 'createDownloadFolder',
-                          isThreeLine: true,
-                          defaultValue: false,
-                        ),
-                        BoxSwitchTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .createYtFold,
-                          ),
-                          subTitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .createYtFoldSub,
-                          ),
-                          keyName: 'createYoutubeFolder',
-                          isThreeLine: true,
-                          defaultValue: false,
-                        ),
-                        BoxSwitchTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .downLyrics,
-                          ),
-                          subTitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .downLyricsSub,
-                          ),
-                          keyName: 'downloadLyrics',
-                          defaultValue: false,
-                          isThreeLine: true,
-                        ),
-                ],
-              ),
-            ),),
-            Padding(padding: const EdgeInsets.all(10.0),
-            child: GradientCard(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            15,
-                            15,
-                            15,
-                            0,
-                          ),
-                          child: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .others,
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                        ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .lang,
-                          ),
-                          subtitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .langSub,
-                          ),
-                          onTap: () {},
-                          trailing: DropdownButton(
-                            value: lang,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color:
-                                  Theme.of(context).textTheme.bodyLarge!.color,
-                            ),
-                            underline: const SizedBox(),
-                            onChanged: (String? newValue) {
-                              if (newValue != null) {
-                                setState(
-                                  () {
-                                    lang = newValue;
-                                    MyApp.of(context).setLocale(
-                                      Locale.fromSubtags(
-                                        languageCode: ConstantCodes
-                                                .languageCodes[newValue] ??
-                                            'en',
-                                      ),
-                                    );
-                                    Hive.box('settings').put('lang', newValue);
-                                  },
-                                );
-                              }
-                            },
-                            items: ConstantCodes.languageCodes.keys
-                                .map<DropdownMenuItem<String>>((language) {
-                              return DropdownMenuItem<String>(
-                                value: language,
-                                child: Text(
-                                  language,
+                                .noFolderSelected,
+                          );
+                        }
+                      },
+                      dense: true,
+                    ),
+                    ListTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .downFilename,
+                      ),
+                      subtitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .downFilenameSub,
+                      ),
+                      dense: true,
+                      onTap: () {
+                        showModalBottomSheet(
+                          isDismissible: true,
+                          backgroundColor: Colors.transparent,
+                          context: context,
+                          builder: (BuildContext context) {
+                            return BottomGradientContainer(
+                              borderRadius: BorderRadius.circular(
+                                20.0,
+                              ),
+                              child: ListView(
+                                physics: const BouncingScrollPhysics(),
+                                shrinkWrap: true,
+                                padding: const EdgeInsets.fromLTRB(
+                                  0,
+                                  10,
+                                  0,
+                                  10,
                                 ),
-                              );
-                            }).toList(),
-                          ),
-                          dense: true,
-                        ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .includeExcludeFolder,
-                          ),
-                          subtitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .includeExcludeFolderSub,
-                          ),
-                          dense: true,
-                          onTap: () {
-                            final GlobalKey<AnimatedListState> listKey =
-                                GlobalKey<AnimatedListState>();
-                            showModalBottomSheet(
-                              isDismissible: true,
-                              backgroundColor: Colors.transparent,
-                              context: context,
-                              builder: (BuildContext context) {
-                                return BottomGradientContainer(
-                                  borderRadius: BorderRadius.circular(
-                                    20.0,
-                                  ),
-                                  child: AnimatedList(
-                                    physics: const BouncingScrollPhysics(),
-                                    shrinkWrap: true,
-                                    padding: const EdgeInsets.fromLTRB(
-                                      0,
-                                      10,
-                                      0,
-                                      10,
+                                children: [
+                                  CheckboxListTile(
+                                    activeColor:
+                                        Theme.of(context).colorScheme.secondary,
+                                    title: Text(
+                                      '${AppLocalizations.of(context)!.title} - ${AppLocalizations.of(context)!.artist}',
                                     ),
-                                    key: listKey,
-                                    initialItemCount:
-                                        includedExcludedPaths.length + 2,
-                                    itemBuilder: (cntxt, idx, animation) {
-                                      if (idx == 0) {
-                                        return ValueListenableBuilder(
-                                          valueListenable: includeOrExclude,
-                                          builder: (
-                                            BuildContext context,
-                                            bool value,
-                                            Widget? widget,
-                                          ) {
-                                            return Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  children: <Widget>[
-                                                    ChoiceChip(
-                                                      label: Text(
-                                                        AppLocalizations.of(
-                                                          context,
-                                                        )!
-                                                            .excluded,
-                                                      ),
-                                                      selectedColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .secondary
-                                                              .withOpacity(0.2),
-                                                      labelStyle: TextStyle(
-                                                        color: !value
-                                                            ? Theme.of(context)
-                                                                .colorScheme
-                                                                .secondary
-                                                            : Theme.of(context)
-                                                                .textTheme
-                                                                .bodyLarge!
-                                                                .color,
-                                                        fontWeight: !value
-                                                            ? FontWeight.w600
-                                                            : FontWeight.normal,
-                                                      ),
-                                                      selected: !value,
-                                                      onSelected:
-                                                          (bool selected) {
-                                                        includeOrExclude.value =
-                                                            !selected;
-                                                        settingsBox.put(
-                                                          'includeOrExclude',
-                                                          !selected,
-                                                        );
-                                                      },
-                                                    ),
-                                                    const SizedBox(
-                                                      width: 5,
-                                                    ),
-                                                    ChoiceChip(
-                                                      label: Text(
-                                                        AppLocalizations.of(
-                                                          context,
-                                                        )!
-                                                            .included,
-                                                      ),
-                                                      selectedColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .secondary
-                                                              .withOpacity(0.2),
-                                                      labelStyle: TextStyle(
-                                                        color: value
-                                                            ? Theme.of(context)
-                                                                .colorScheme
-                                                                .secondary
-                                                            : Theme.of(context)
-                                                                .textTheme
-                                                                .bodyLarge!
-                                                                .color,
-                                                        fontWeight: value
-                                                            ? FontWeight.w600
-                                                            : FontWeight.normal,
-                                                      ),
-                                                      selected: value,
-                                                      onSelected:
-                                                          (bool selected) {
-                                                        includeOrExclude.value =
-                                                            selected;
-                                                        settingsBox.put(
-                                                          'includeOrExclude',
-                                                          selected,
-                                                        );
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                    left: 5.0,
-                                                    top: 5.0,
-                                                    bottom: 10.0,
-                                                  ),
-                                                  child: Text(
-                                                    value
-                                                        ? AppLocalizations.of(
-                                                            context,
-                                                          )!
-                                                            .includedDetails
-                                                        : AppLocalizations.of(
-                                                            context,
-                                                          )!
-                                                            .excludedDetails,
-                                                    textAlign: TextAlign.start,
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
+                                    value: downFilename == 0,
+                                    selected: downFilename == 0,
+                                    onChanged: (bool? val) {
+                                      if (val ?? false) {
+                                        downFilename = 0;
+                                        settingsBox.put('downFilename', 0);
+                                        Navigator.pop(context);
                                       }
-                                      if (idx == 1) {
-                                        return ListTile(
-                                          title: Text(
-                                            AppLocalizations.of(context)!
-                                                .addNew,
-                                          ),
-                                          leading: const Icon(
-                                            CupertinoIcons.add,
-                                          ),
-                                          onTap: () async {
-                                            final String temp =
-                                                await Picker.selectFolder(
-                                              context: context,
-                                            );
-                                            if (temp.trim() != '' &&
-                                                !includedExcludedPaths
-                                                    .contains(temp)) {
-                                              includedExcludedPaths.add(temp);
-                                              Hive.box('settings').put(
-                                                'includedExcludedPaths',
-                                                includedExcludedPaths,
-                                              );
-                                              listKey.currentState!.insertItem(
-                                                includedExcludedPaths.length,
-                                              );
-                                            } else {
-                                              if (temp.trim() == '') {
-                                                Navigator.pop(context);
-                                              }
-                                              ShowSnackBar().showSnackBar(
-                                                context,
-                                                temp.trim() == ''
-                                                    ? 'No folder selected'
-                                                    : 'Already added',
-                                              );
-                                            }
-                                          },
-                                        );
-                                      }
-
-                                      return SizeTransition(
-                                        sizeFactor: animation,
-                                        child: ListTile(
-                                          leading: const Icon(
-                                            CupertinoIcons.folder,
-                                          ),
-                                          title: Text(
-                                            includedExcludedPaths[idx - 2]
-                                                .toString(),
-                                          ),
-                                          trailing: IconButton(
-                                            icon: const Icon(
-                                              CupertinoIcons.clear,
-                                              size: 15.0,
-                                            ),
-                                            tooltip: 'Remove',
-                                            onPressed: () {
-                                              includedExcludedPaths
-                                                  .removeAt(idx - 2);
-                                              Hive.box('settings').put(
-                                                'includedExcludedPaths',
-                                                includedExcludedPaths,
-                                              );
-                                              listKey.currentState!.removeItem(
-                                                idx,
-                                                (context, animation) =>
-                                                    Container(),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      );
                                     },
                                   ),
-                                );
-                              },
+                                  CheckboxListTile(
+                                    activeColor:
+                                        Theme.of(context).colorScheme.secondary,
+                                    title: Text(
+                                      '${AppLocalizations.of(context)!.artist} - ${AppLocalizations.of(context)!.title}',
+                                    ),
+                                    value: downFilename == 1,
+                                    selected: downFilename == 1,
+                                    onChanged: (val) {
+                                      if (val ?? false) {
+                                        downFilename = 1;
+                                        settingsBox.put('downFilename', 1);
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                  ),
+                                  CheckboxListTile(
+                                    activeColor:
+                                        Theme.of(context).colorScheme.secondary,
+                                    title: Text(
+                                      AppLocalizations.of(context)!.title,
+                                    ),
+                                    value: downFilename == 2,
+                                    selected: downFilename == 2,
+                                    onChanged: (val) {
+                                      if (val ?? false) {
+                                        downFilename = 2;
+                                        settingsBox.put('downFilename', 2);
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
                             );
                           },
-                        ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .minAudioLen,
-                          ),
-                          subtitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .minAudioLenSub,
-                          ),
-                          dense: true,
-                          onTap: () {
-                            showTextInputDialog(
-                              context: context,
-                              title: AppLocalizations.of(
-                                context,
-                              )!
-                                  .minAudioAlert,
-                              initialText: (Hive.box('settings')
-                                          .get('minDuration', defaultValue: 10)
-                                      as int)
-                                  .toString(),
-                              keyboardType: TextInputType.number,
-                              onSubmitted: (String value) {
-                                if (value.trim() == '') {
-                                  value = '0';
-                                }
-                                Hive.box('settings')
-                                    .put('minDuration', int.parse(value));
-                                Navigator.pop(context);
-                              },
-                            );
-                          },
-                        ),
-                        BoxSwitchTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .liveSearch,
-                          ),
-                          subTitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .liveSearchSub,
-                          ),
-                          keyName: 'liveSearch',
-                          isThreeLine: false,
-                          defaultValue: true,
-                        ),
-                        BoxSwitchTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .useDown,
-                          ),
-                          subTitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .useDownSub,
-                          ),
-                          keyName: 'useDown',
-                          isThreeLine: true,
-                          defaultValue: true,
-                        ),
-                        BoxSwitchTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .getLyricsOnline,
-                          ),
-                          subTitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .getLyricsOnlineSub,
-                          ),
-                          keyName: 'getLyricsOnline',
-                          isThreeLine: true,
-                          defaultValue: true,
-                        ),
-                        BoxSwitchTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .supportEq,
-                          ),
-                          subTitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .supportEqSub,
-                          ),
-                          keyName: 'supportEq',
-                          isThreeLine: true,
-                          defaultValue: false,
-                        ),
-                        BoxSwitchTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .stopOnClose,
-                          ),
-                          subTitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .stopOnCloseSub,
-                          ),
-                          isThreeLine: true,
-                          keyName: 'stopForegroundService',
-                          defaultValue: true,
-                        ),
-                        // const BoxSwitchTile(
-                        //   title: Text('Remove Service from foreground when paused'),
-                        //   subtitle: Text(
-                        //       "If turned on, you can slide notification when paused to stop the service. But Service can also be stopped by android to release memory. If you don't want android to stop service while paused, turn it off\nDefault: On\n"),
-                        //   isThreeLine: true,
-                        //   keyName: 'stopServiceOnPause',
-                        //   defaultValue: true,
-                        // ),
-              ],
-            )),),
+                        );
+                      },
+                    ),
+                    BoxSwitchTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .createAlbumFold,
+                      ),
+                      subTitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .createAlbumFoldSub,
+                      ),
+                      keyName: 'createDownloadFolder',
+                      isThreeLine: true,
+                      defaultValue: false,
+                    ),
+                    BoxSwitchTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .createYtFold,
+                      ),
+                      subTitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .createYtFoldSub,
+                      ),
+                      keyName: 'createYoutubeFolder',
+                      isThreeLine: true,
+                      defaultValue: false,
+                    ),
+                    BoxSwitchTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .downLyrics,
+                      ),
+                      subTitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .downLyricsSub,
+                      ),
+                      keyName: 'downloadLyrics',
+                      defaultValue: false,
+                      isThreeLine: true,
+                    ),
+                  ],
+                ),
+              ),
+            ),
             Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    10.0,
-                    10.0,
-                    10.0,
-                    10.0,
+              padding: const EdgeInsets.all(10.0),
+              child: GradientCard(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      15,
+                      15,
+                      15,
+                      0,
+                    ),
+                    child: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .others,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
                   ),
-                  child: GradientCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            15,
-                            15,
-                            15,
-                            0,
-                          ),
+                  ListTile(
+                    title: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .lang,
+                    ),
+                    subtitle: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .langSub,
+                    ),
+                    onTap: () {},
+                    trailing: DropdownButton(
+                      value: lang,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).textTheme.bodyLarge!.color,
+                      ),
+                      underline: const SizedBox(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(
+                            () {
+                              lang = newValue;
+                              MyApp.of(context).setLocale(
+                                Locale.fromSubtags(
+                                  languageCode:
+                                      ConstantCodes.languageCodes[newValue] ??
+                                          'en',
+                                ),
+                              );
+                              Hive.box('settings').put('lang', newValue);
+                            },
+                          );
+                        }
+                      },
+                      items: ConstantCodes.languageCodes.keys
+                          .map<DropdownMenuItem<String>>((language) {
+                        return DropdownMenuItem<String>(
+                          value: language,
                           child: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .backNRest,
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
+                            language,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    dense: true,
+                  ),
+                  ListTile(
+                    title: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .includeExcludeFolder,
+                    ),
+                    subtitle: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .includeExcludeFolderSub,
+                    ),
+                    dense: true,
+                    onTap: () {
+                      final GlobalKey<AnimatedListState> listKey =
+                          GlobalKey<AnimatedListState>();
+                      showModalBottomSheet(
+                        isDismissible: true,
+                        backgroundColor: Colors.transparent,
+                        context: context,
+                        builder: (BuildContext context) {
+                          return BottomGradientContainer(
+                            borderRadius: BorderRadius.circular(
+                              20.0,
                             ),
-                          ),
-                        ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .createBack,
-                          ),
-                          subtitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .createBackSub,
-                          ),
-                          dense: true,
-                          onTap: () {
-                            showModalBottomSheet(
-                              isDismissible: true,
-                              backgroundColor: Colors.transparent,
-                              context: context,
-                              builder: (BuildContext context) {
-                                final List playlistNames =
-                                    Hive.box('settings').get(
-                                  'playlistNames',
-                                  defaultValue: ['Favorite Songs'],
-                                ) as List;
-                                if (!playlistNames.contains('Favorite Songs')) {
-                                  playlistNames.insert(0, 'Favorite Songs');
-                                  settingsBox.put(
-                                    'playlistNames',
-                                    playlistNames,
+                            child: AnimatedList(
+                              physics: const BouncingScrollPhysics(),
+                              shrinkWrap: true,
+                              padding: const EdgeInsets.fromLTRB(
+                                0,
+                                10,
+                                0,
+                                10,
+                              ),
+                              key: listKey,
+                              initialItemCount:
+                                  includedExcludedPaths.length + 2,
+                              itemBuilder: (cntxt, idx, animation) {
+                                if (idx == 0) {
+                                  return ValueListenableBuilder(
+                                    valueListenable: includeOrExclude,
+                                    builder: (
+                                      BuildContext context,
+                                      bool value,
+                                      Widget? widget,
+                                    ) {
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: <Widget>[
+                                              ChoiceChip(
+                                                label: Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!
+                                                      .excluded,
+                                                ),
+                                                selectedColor: Theme.of(context)
+                                                    .colorScheme
+                                                    .secondary
+                                                    .withOpacity(0.2),
+                                                labelStyle: TextStyle(
+                                                  color: !value
+                                                      ? Theme.of(context)
+                                                          .colorScheme
+                                                          .secondary
+                                                      : Theme.of(context)
+                                                          .textTheme
+                                                          .bodyLarge!
+                                                          .color,
+                                                  fontWeight: !value
+                                                      ? FontWeight.w600
+                                                      : FontWeight.normal,
+                                                ),
+                                                selected: !value,
+                                                onSelected: (bool selected) {
+                                                  includeOrExclude.value =
+                                                      !selected;
+                                                  settingsBox.put(
+                                                    'includeOrExclude',
+                                                    !selected,
+                                                  );
+                                                },
+                                              ),
+                                              const SizedBox(
+                                                width: 5,
+                                              ),
+                                              ChoiceChip(
+                                                label: Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!
+                                                      .included,
+                                                ),
+                                                selectedColor: Theme.of(context)
+                                                    .colorScheme
+                                                    .secondary
+                                                    .withOpacity(0.2),
+                                                labelStyle: TextStyle(
+                                                  color: value
+                                                      ? Theme.of(context)
+                                                          .colorScheme
+                                                          .secondary
+                                                      : Theme.of(context)
+                                                          .textTheme
+                                                          .bodyLarge!
+                                                          .color,
+                                                  fontWeight: value
+                                                      ? FontWeight.w600
+                                                      : FontWeight.normal,
+                                                ),
+                                                selected: value,
+                                                onSelected: (bool selected) {
+                                                  includeOrExclude.value =
+                                                      selected;
+                                                  settingsBox.put(
+                                                    'includeOrExclude',
+                                                    selected,
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              left: 5.0,
+                                              top: 5.0,
+                                              bottom: 10.0,
+                                            ),
+                                            child: Text(
+                                              value
+                                                  ? AppLocalizations.of(
+                                                      context,
+                                                    )!
+                                                      .includedDetails
+                                                  : AppLocalizations.of(
+                                                      context,
+                                                    )!
+                                                      .excludedDetails,
+                                              textAlign: TextAlign.start,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                                if (idx == 1) {
+                                  return ListTile(
+                                    title: Text(
+                                      AppLocalizations.of(context)!.addNew,
+                                    ),
+                                    leading: const Icon(
+                                      CupertinoIcons.add,
+                                    ),
+                                    onTap: () async {
+                                      final String temp =
+                                          await Picker.selectFolder(
+                                        context: context,
+                                      );
+                                      if (temp.trim() != '' &&
+                                          !includedExcludedPaths
+                                              .contains(temp)) {
+                                        includedExcludedPaths.add(temp);
+                                        Hive.box('settings').put(
+                                          'includedExcludedPaths',
+                                          includedExcludedPaths,
+                                        );
+                                        listKey.currentState!.insertItem(
+                                          includedExcludedPaths.length,
+                                        );
+                                      } else {
+                                        if (temp.trim() == '') {
+                                          Navigator.pop(context);
+                                        }
+                                        ShowSnackBar().showSnackBar(
+                                          context,
+                                          temp.trim() == ''
+                                              ? 'No folder selected'
+                                              : 'Already added',
+                                        );
+                                      }
+                                    },
                                   );
                                 }
 
-                                final List<String> persist = [
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .settings,
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .playlists,
-                                ];
-
-                                final List<String> checked = [
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .settings,
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .downs,
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .playlists,
-                                ];
-
-                                final List<String> items = [
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .settings,
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .playlists,
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .downs,
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .cache,
-                                ];
-
-                                final Map<String, List> boxNames = {
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .settings: ['settings'],
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .cache: ['cache'],
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .downs: ['downloads'],
-                                  AppLocalizations.of(
-                                    context,
-                                  )!
-                                      .playlists: playlistNames,
-                                };
-                                return StatefulBuilder(
-                                  builder: (
-                                    BuildContext context,
-                                    StateSetter setStt,
-                                  ) {
-                                    return BottomGradientContainer(
-                                      borderRadius: BorderRadius.circular(
-                                        20.0,
+                                return SizeTransition(
+                                  sizeFactor: animation,
+                                  child: ListTile(
+                                    leading: const Icon(
+                                      CupertinoIcons.folder,
+                                    ),
+                                    title: Text(
+                                      includedExcludedPaths[idx - 2].toString(),
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(
+                                        CupertinoIcons.clear,
+                                        size: 15.0,
                                       ),
-                                      child: Column(
-                                        children: [
-                                          Expanded(
-                                            child: ListView.builder(
-                                              physics:
-                                                  const BouncingScrollPhysics(),
-                                              shrinkWrap: true,
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                0,
-                                                10,
-                                                0,
-                                                10,
+                                      tooltip: 'Remove',
+                                      onPressed: () {
+                                        includedExcludedPaths.removeAt(idx - 2);
+                                        Hive.box('settings').put(
+                                          'includedExcludedPaths',
+                                          includedExcludedPaths,
+                                        );
+                                        listKey.currentState!.removeItem(
+                                          idx,
+                                          (context, animation) => Container(),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  ListTile(
+                    title: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .minAudioLen,
+                    ),
+                    subtitle: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .minAudioLenSub,
+                    ),
+                    dense: true,
+                    onTap: () {
+                      showTextInputDialog(
+                        context: context,
+                        title: AppLocalizations.of(
+                          context,
+                        )!
+                            .minAudioAlert,
+                        initialText: (Hive.box('settings')
+                                .get('minDuration', defaultValue: 10) as int)
+                            .toString(),
+                        keyboardType: TextInputType.number,
+                        onSubmitted: (String value) {
+                          if (value.trim() == '') {
+                            value = '0';
+                          }
+                          Hive.box('settings')
+                              .put('minDuration', int.parse(value));
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                  BoxSwitchTile(
+                    title: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .liveSearch,
+                    ),
+                    subTitle: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .liveSearchSub,
+                    ),
+                    keyName: 'liveSearch',
+                    isThreeLine: false,
+                    defaultValue: true,
+                  ),
+                  BoxSwitchTile(
+                    title: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .useDown,
+                    ),
+                    subTitle: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .useDownSub,
+                    ),
+                    keyName: 'useDown',
+                    isThreeLine: true,
+                    defaultValue: true,
+                  ),
+                  BoxSwitchTile(
+                    title: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .getLyricsOnline,
+                    ),
+                    subTitle: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .getLyricsOnlineSub,
+                    ),
+                    keyName: 'getLyricsOnline',
+                    isThreeLine: true,
+                    defaultValue: true,
+                  ),
+                  BoxSwitchTile(
+                    title: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .supportEq,
+                    ),
+                    subTitle: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .supportEqSub,
+                    ),
+                    keyName: 'supportEq',
+                    isThreeLine: true,
+                    defaultValue: false,
+                  ),
+                  BoxSwitchTile(
+                    title: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .stopOnClose,
+                    ),
+                    subTitle: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!
+                          .stopOnCloseSub,
+                    ),
+                    isThreeLine: true,
+                    keyName: 'stopForegroundService',
+                    defaultValue: true,
+                  ),
+                  // const BoxSwitchTile(
+                  //   title: Text('Remove Service from foreground when paused'),
+                  //   subtitle: Text(
+                  //       "If turned on, you can slide notification when paused to stop the service. But Service can also be stopped by android to release memory. If you don't want android to stop service while paused, turn it off\nDefault: On\n"),
+                  //   isThreeLine: true,
+                  //   keyName: 'stopServiceOnPause',
+                  //   defaultValue: true,
+                  // ),
+                ],
+              )),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                10.0,
+                10.0,
+                10.0,
+                10.0,
+              ),
+              child: GradientCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        15,
+                        15,
+                        15,
+                        0,
+                      ),
+                      child: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .backNRest,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .createBack,
+                      ),
+                      subtitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .createBackSub,
+                      ),
+                      dense: true,
+                      onTap: () {
+                        showModalBottomSheet(
+                          isDismissible: true,
+                          backgroundColor: Colors.transparent,
+                          context: context,
+                          builder: (BuildContext context) {
+                            final List playlistNames = Hive.box('settings').get(
+                              'playlistNames',
+                              defaultValue: ['Favorite Songs'],
+                            ) as List;
+                            if (!playlistNames.contains('Favorite Songs')) {
+                              playlistNames.insert(0, 'Favorite Songs');
+                              settingsBox.put(
+                                'playlistNames',
+                                playlistNames,
+                              );
+                            }
+
+                            final List<String> persist = [
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .settings,
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .playlists,
+                            ];
+
+                            final List<String> checked = [
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .settings,
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .downs,
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .playlists,
+                            ];
+
+                            final List<String> items = [
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .settings,
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .playlists,
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .downs,
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .cache,
+                            ];
+
+                            final Map<String, List> boxNames = {
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .settings: ['settings'],
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .cache: ['cache'],
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .downs: ['downloads'],
+                              AppLocalizations.of(
+                                context,
+                              )!
+                                  .playlists: playlistNames,
+                            };
+                            return StatefulBuilder(
+                              builder: (
+                                BuildContext context,
+                                StateSetter setStt,
+                              ) {
+                                return BottomGradientContainer(
+                                  borderRadius: BorderRadius.circular(
+                                    20.0,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Expanded(
+                                        child: ListView.builder(
+                                          physics:
+                                              const BouncingScrollPhysics(),
+                                          shrinkWrap: true,
+                                          padding: const EdgeInsets.fromLTRB(
+                                            0,
+                                            10,
+                                            0,
+                                            10,
+                                          ),
+                                          itemCount: items.length,
+                                          itemBuilder: (context, idx) {
+                                            return CheckboxListTile(
+                                              activeColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                              checkColor: Theme.of(context)
+                                                          .colorScheme
+                                                          .secondary ==
+                                                      Colors.white
+                                                  ? Colors.black
+                                                  : null,
+                                              value: checked.contains(
+                                                items[idx],
                                               ),
-                                              itemCount: items.length,
-                                              itemBuilder: (context, idx) {
-                                                return CheckboxListTile(
-                                                  activeColor: Theme.of(context)
-                                                      .colorScheme
-                                                      .secondary,
-                                                  checkColor: Theme.of(context)
-                                                              .colorScheme
-                                                              .secondary ==
-                                                          Colors.white
-                                                      ? Colors.black
-                                                      : null,
-                                                  value: checked.contains(
-                                                    items[idx],
-                                                  ),
-                                                  title: Text(
-                                                    items[idx],
-                                                  ),
-                                                  onChanged: persist
-                                                          .contains(items[idx])
+                                              title: Text(
+                                                items[idx],
+                                              ),
+                                              onChanged:
+                                                  persist.contains(items[idx])
                                                       ? null
                                                       : (bool? value) {
                                                           value!
@@ -2763,373 +2752,370 @@ class _SettingPageState extends State<SettingPage>
                                                             () {},
                                                           );
                                                         },
-                                                );
-                                              },
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          TextButton(
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                            ),
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text(
+                                              AppLocalizations.of(
+                                                context,
+                                              )!
+                                                  .cancel,
                                             ),
                                           ),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            children: [
-                                              TextButton(
-                                                style: TextButton.styleFrom(
-                                                  foregroundColor:
-                                                      Theme.of(context)
-                                                          .colorScheme
-                                                          .secondary,
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                },
-                                                child: Text(
-                                                  AppLocalizations.of(
-                                                    context,
-                                                  )!
-                                                      .cancel,
-                                                ),
+                                          TextButton(
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .secondary,
+                                            ),
+                                            onPressed: () {
+                                              createBackup(
+                                                context,
+                                                checked,
+                                                boxNames,
+                                              );
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text(
+                                              AppLocalizations.of(
+                                                context,
+                                              )!
+                                                  .ok,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
                                               ),
-                                              TextButton(
-                                                style: TextButton.styleFrom(
-                                                  foregroundColor:
-                                                      Theme.of(context)
-                                                          .colorScheme
-                                                          .secondary,
-                                                ),
-                                                onPressed: () {
-                                                  createBackup(
-                                                    context,
-                                                    checked,
-                                                    boxNames,
-                                                  );
-                                                  Navigator.pop(context);
-                                                },
-                                                child: Text(
-                                                  AppLocalizations.of(
-                                                    context,
-                                                  )!
-                                                      .ok,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
+                                            ),
                                           ),
                                         ],
                                       ),
-                                    );
-                                  },
-                                );
-                              },
-                            );
-                          },
-                        ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .restore,
-                          ),
-                          subtitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .restoreSub,
-                          ),
-                          dense: true,
-                          onTap: () async {
-                            await restore(context);
-                            currentTheme.refresh();
-                          },
-                        ),
-                        BoxSwitchTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .autoBack,
-                          ),
-                          subTitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .autoBackSub,
-                          ),
-                          keyName: 'autoBackup',
-                          defaultValue: false,
-                        ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .autoBackLocation,
-                          ),
-                          subtitle: Text(autoBackPath),
-                          trailing: TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Colors.white
-                                  : Colors.grey[700],
-                            ),
-                            onPressed: () async {
-                              autoBackPath =
-                                  await ExtStorageProvider.getExtStorage(
-                                        dirName: 'IncognitoMusic/Backups',
-                                        writeAccess: true,
-                                      ) ??
-                                      '/storage/emulated/0/IncognitoMusic/Backups';
-                              Hive.box('settings')
-                                  .put('autoBackPath', autoBackPath);
-                              setState(
-                                () {},
-                              );
-                            },
-                            child: Text(
-                              AppLocalizations.of(
-                                context,
-                              )!
-                                  .reset,
-                            ),
-                          ),
-                          onTap: () async {
-                            final String temp = await Picker.selectFolder(
-                              context: context,
-                              message: AppLocalizations.of(
-                                context,
-                              )!
-                                  .selectBackLocation,
-                            );
-                            if (temp.trim() != '') {
-                              autoBackPath = temp;
-                              Hive.box('settings').put('autoBackPath', temp);
-                              setState(
-                                () {},
-                              );
-                            } else {
-                              ShowSnackBar().showSnackBar(
-                                context,
-                                AppLocalizations.of(
-                                  context,
-                                )!
-                                    .noFolderSelected,
-                              );
-                            }
-                          },
-                          dense: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: GradientCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            15,
-                            15,
-                            15,
-                            0,
-                          ),
-                          child: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .about,
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                        ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .shareApp,
-                          ),
-                          subtitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .shareAppSub,
-                          ),
-                          onTap: () {
-                            Share.share(
-                              '${AppLocalizations.of(
-                                context,
-                              )!.shareAppText}: https://github.com/IncognitoTabs/GraduationProject.git',
-                            );
-                          },
-                          dense: true,
-                        ),
-                        ListTile(
-                          title: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .contactUs,
-                          ),
-                          subtitle: Text(
-                            AppLocalizations.of(
-                              context,
-                            )!
-                                .contactUsSub,
-                          ),
-                          dense: true,
-                          onTap: () {
-                            showModalBottomSheet(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return SizedBox(
-                                  height: 100,
-                                  child: GradientContainer(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(
-                                                MdiIcons.gmail,
-                                              ),
-                                              iconSize: 40,
-                                              tooltip: AppLocalizations.of(
-                                                context,
-                                              )!
-                                                  .gmail,
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                launchUrl(
-                                                  Uri.parse(
-                                                    'https://mail.google.com/mail/?extsrc=mailto&url=mailto%3A%3Fto%3Dhoangminhtai2810%40gmail.com%26subject%3DRegarding%2520IncognitoMusic%2520App',
-                                                  ),
-                                                  mode: LaunchMode
-                                                      .externalApplication,
-                                                );
-                                              },
-                                            ),
-                                            Text(
-                                              AppLocalizations.of(
-                                                context,
-                                              )!
-                                                  .gmail,
-                                            ),
-                                          ],
-                                        ),
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(
-                                                MdiIcons.linkedin,
-                                              ),
-                                              iconSize: 40,
-                                              tooltip: AppLocalizations.of(
-                                                context,
-                                              )!
-                                                  .tg,
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                launchUrl(
-                                                  Uri.parse(
-                                                    'https://www.linkedin.com/in/incognitotabs/',
-                                                  ),
-                                                  mode: LaunchMode
-                                                      .externalApplication,
-                                                );
-                                              },
-                                            ),
-                                            Text(
-                                              AppLocalizations.of(
-                                                context,
-                                              )!
-                                                  .tg,
-                                            ),
-                                          ],
-                                        ),
-                                        Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(
-                                                MdiIcons.instagram,
-                                              ),
-                                              iconSize: 40,
-                                              tooltip: AppLocalizations.of(
-                                                context,
-                                              )!
-                                                  .insta,
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                launchUrl(
-                                                  Uri.parse(
-                                                    'https://www.instagram.com/tabsvn/',
-                                                  ),
-                                                  mode: LaunchMode
-                                                      .externalApplication,
-                                                );
-                                              },
-                                            ),
-                                            Text(
-                                              AppLocalizations.of(
-                                                context,
-                                              )!
-                                                  .insta,
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+                                    ],
                                   ),
                                 );
                               },
                             );
                           },
+                        );
+                      },
+                    ),
+                    ListTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .restore,
+                      ),
+                      subtitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .restoreSub,
+                      ),
+                      dense: true,
+                      onTap: () async {
+                        await restore(context);
+                        currentTheme.refresh();
+                      },
+                    ),
+                    BoxSwitchTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .autoBack,
+                      ),
+                      subTitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .autoBackSub,
+                      ),
+                      keyName: 'autoBackup',
+                      defaultValue: false,
+                    ),
+                    ListTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .autoBackLocation,
+                      ),
+                      subtitle: Text(autoBackPath),
+                      trailing: TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.grey[700],
                         ),
-                        ListTile(
-                          title: Text(
+                        onPressed: () async {
+                          autoBackPath = await ExtStorageProvider.getExtStorage(
+                                dirName: 'IncognitoMusic/Backups',
+                                writeAccess: true,
+                              ) ??
+                              '/storage/emulated/0/IncognitoMusic/Backups';
+                          Hive.box('settings')
+                              .put('autoBackPath', autoBackPath);
+                          setState(
+                            () {},
+                          );
+                        },
+                        child: Text(
+                          AppLocalizations.of(
+                            context,
+                          )!
+                              .reset,
+                        ),
+                      ),
+                      onTap: () async {
+                        final String temp = await Picker.selectFolder(
+                          context: context,
+                          message: AppLocalizations.of(
+                            context,
+                          )!
+                              .selectBackLocation,
+                        );
+                        if (temp.trim() != '') {
+                          autoBackPath = temp;
+                          Hive.box('settings').put('autoBackPath', temp);
+                          setState(
+                            () {},
+                          );
+                        } else {
+                          ShowSnackBar().showSnackBar(
+                            context,
                             AppLocalizations.of(
                               context,
                             )!
-                                .moreInfo,
-                          ),
-                          dense: true,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/about');
-                          },
-                        ),
-                      ],
+                                .noFolderSelected,
+                          );
+                        }
+                      },
+                      dense: true,
                     ),
-                  ),
+                  ],
                 ),
+              ),
+            ),
             Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    5,
-                    30,
-                    5,
-                    20,
-                  ),
-                  child: Center(
-                    child: Text(
-                      AppLocalizations.of(
-                        context,
-                      )!
-                          .madeBy,
-                      style: const TextStyle(fontSize: 12),
+              padding: const EdgeInsets.all(10.0),
+              child: GradientCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        15,
+                        15,
+                        15,
+                        0,
+                      ),
+                      child: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .about,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
                     ),
-                  ),
+                    ListTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .shareApp,
+                      ),
+                      subtitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .shareAppSub,
+                      ),
+                      onTap: () {
+                        Share.share(
+                          '${AppLocalizations.of(
+                            context,
+                          )!.shareAppText}: https://github.com/IncognitoTabs/GraduationProject.git',
+                        );
+                      },
+                      dense: true,
+                    ),
+                    ListTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .contactUs,
+                      ),
+                      subtitle: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .contactUsSub,
+                      ),
+                      dense: true,
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SizedBox(
+                              height: 100,
+                              child: GradientContainer(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            MdiIcons.gmail,
+                                          ),
+                                          iconSize: 40,
+                                          tooltip: AppLocalizations.of(
+                                            context,
+                                          )!
+                                              .gmail,
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            launchUrl(
+                                              Uri.parse(
+                                                'https://mail.google.com/mail/?extsrc=mailto&url=mailto%3A%3Fto%3Dhoangminhtai2810%40gmail.com%26subject%3DRegarding%2520IncognitoMusic%2520App',
+                                              ),
+                                              mode: LaunchMode
+                                                  .externalApplication,
+                                            );
+                                          },
+                                        ),
+                                        Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!
+                                              .gmail,
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            MdiIcons.linkedin,
+                                          ),
+                                          iconSize: 40,
+                                          tooltip: AppLocalizations.of(
+                                            context,
+                                          )!
+                                              .tg,
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            launchUrl(
+                                              Uri.parse(
+                                                'https://www.linkedin.com/in/incognitotabs/',
+                                              ),
+                                              mode: LaunchMode
+                                                  .externalApplication,
+                                            );
+                                          },
+                                        ),
+                                        Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!
+                                              .tg,
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            MdiIcons.instagram,
+                                          ),
+                                          iconSize: 40,
+                                          tooltip: AppLocalizations.of(
+                                            context,
+                                          )!
+                                              .insta,
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            launchUrl(
+                                              Uri.parse(
+                                                'https://www.instagram.com/tabsvn/',
+                                              ),
+                                              mode: LaunchMode
+                                                  .externalApplication,
+                                            );
+                                          },
+                                        ),
+                                        Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!
+                                              .insta,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    ListTile(
+                      title: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!
+                            .moreInfo,
+                      ),
+                      dense: true,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/about');
+                      },
+                    ),
+                  ],
                 ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                5,
+                30,
+                5,
+                20,
+              ),
+              child: Center(
+                child: Text(
+                  AppLocalizations.of(
+                    context,
+                  )!
+                      .madeBy,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+            ),
           ]))
         ],
       ),
@@ -3195,6 +3181,7 @@ class BoxSwitchTile extends StatelessWidget {
         });
   }
 }
+
 class SpotifyCountry {
   Future<String> changeCountry({required BuildContext context}) async {
     String region =

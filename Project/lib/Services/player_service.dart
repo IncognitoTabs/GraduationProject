@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:incognito_music/Helpers/auto_update_database.dart';
 import 'package:logging/logging.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
@@ -199,6 +200,9 @@ class PlayerInvoke {
   static Future<void> updateNplay(List<MediaItem> queue, int index) async {
     await audioHandler.setShuffleMode(AudioServiceShuffleMode.none);
     await audioHandler.updateQueue(queue);
+    for (var element in queue) {
+      if (element.genre != 'YouTube') AutoUpdateDB.addSong(element);
+    }
     await audioHandler.customAction('skipToMediaItem', {'id': queue[index].id});
     await audioHandler.play();
     final String repeatMode =

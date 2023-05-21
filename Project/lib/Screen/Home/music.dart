@@ -180,7 +180,7 @@ class _MusicHomePageState extends State<MusicHomePage>
               if (idx == playlistIndex) {
                 return (playlistNames.isEmpty ||
                         !(Hive.box('settings')
-                            .get('showPlaylist', defaultValue: true) as bool) ||
+                            .get('showPlaylist', defaultValue: false) as bool) ||
                         (playlistNames.length == 1 &&
                             playlistNames.first == 'Favorite Songs' &&
                             likedCount() == 0))
