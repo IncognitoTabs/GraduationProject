@@ -34,7 +34,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../Helpers/auto_update_database.dart';
 import '../../Helpers/config.dart';
 
 class PlayScreen extends StatefulWidget {
@@ -1688,9 +1687,6 @@ class NowPlayingStream extends StatelessWidget {
           itemCount: queue.length,
           itemBuilder: (context, index) {
             bool isNowPlaying = index == queueState.queueIndex;
-            AutoUpdateDB.addSong(queue[index]);
-            // //TODO: cannot add stats to DB
-            if (isNowPlaying) AutoUpdateDB.addStats(queue[index].id);
             return Dismissible(
               key: ValueKey(queue[index].id),
               direction: isNowPlaying
