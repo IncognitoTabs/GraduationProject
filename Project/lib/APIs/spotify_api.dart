@@ -13,9 +13,9 @@ class SpotifyApi {
   ];
 
   /// You can signup for spotify developer account and get your own clientID and clientSecret incase you don't want to use these
-  final String clientID = '08de4eaf71904d1b95254fab3015d711';
-  final String clientSecret = '622b4fbad33947c59b95a6ae607de11d';
-  final String redirectUrl = 'app://blackhole/auth';
+  final String clientID = '5b748abea9704c1186048696f33a4120';
+  final String clientSecret = 'c92a29b1b8304901b64b88316f9dc8bc';
+  final String redirectUrl = 'app://incognitomusic/auth';
   final String spotifyApiUrl = 'https://accounts.spotify.com/api';
   final String spotifyApiBaseUrl = 'https://api.spotify.com/v1';
   final String spotifyUserPlaylistEndpoint = '/me/playlists';
@@ -27,22 +27,6 @@ class SpotifyApi {
 
   String requestAuthorization() =>
       'https://accounts.spotify.com/authorize?client_id=$clientID&response_type=code&redirect_uri=$redirectUrl&scope=${_scopes.join('%20')}';
-
-  // Future<String> authenticate() async {
-  //   final url = SpotifyApi().requestAuthorization();
-  //   final callbackUrlScheme = 'accounts.spotify.com';
-
-  //   try {
-  //     final result = await FlutterWebAuth.authenticate(
-  //         url: url, callbackUrlScheme: callbackUrlScheme);
-  // print('got result....');
-  // print(result);
-  //     return result;
-  //   } catch (e) {
-  // print('Got error: $e');
-  //     return 'ERROR';
-  //   }
-  // }
 
   Future<List<String>> getAccessToken({
     String? code,

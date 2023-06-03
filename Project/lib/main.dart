@@ -18,6 +18,7 @@ import 'package:incognito_music/Screen/Home/home.dart';
 import 'package:incognito_music/Screen/Library/downloads.dart';
 import 'package:incognito_music/Screen/Library/nowplaying.dart';
 import 'package:incognito_music/Screen/Library/playlists.dart';
+import 'package:incognito_music/Screen/Library/recent.dart';
 import 'package:incognito_music/Screen/Library/stats.dart';
 import 'package:incognito_music/Screen/Settings/setting.dart';
 import 'package:incognito_music/Screen/login/auth.dart';
@@ -59,16 +60,13 @@ Future<void> startService() async {
   await initializeLogging();
   final AudioPlayerHandler audioHandler = await AudioService.init(
     builder: () => AudioPlayerHandlerImpl(),
-    // config: AudioServiceConfig(
-    //   androidNotificationChannelId:
-    //       'com.hoangminhtai.mobile_project.channel.audio',
-    //   androidNotificationChannelName: 'Incognito Music',
-    //   androidNotificationIcon: 'drawable/icon-white-trans',
-    //   androidShowNotificationBadge: true,
-    //   androidStopForegroundOnPause: false,
-    //   // Hive.box('settings').get('stopServiceOnPause', defaultValue: true) as bool,
-    //   notificationColor: Colors.grey[900],
-    // ),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId:
+          'com.hoangminhtai.mobile_project.channel.audio',
+      androidNotificationChannelName: 'Incognito Music',
+      androidNotificationIcon: 'mipmap/icon_white_trans',
+      androidShowNotificationBadge: true,
+    ),
   );
   GetIt.I.registerSingleton<AudioPlayerHandler>(audioHandler);
   GetIt.I.registerSingleton<MyTheme>(MyTheme());
@@ -241,6 +239,7 @@ class _MyAppState extends State<MyApp> {
         theme: AppTheme.lightTheme(context: context),
         darkTheme: AppTheme.darkTheme(context: context),
         debugShowCheckedModeBanner: false,
+        locale: _locale,
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
@@ -261,6 +260,7 @@ class _MyAppState extends State<MyApp> {
           '/nowplaying': (context) => const NowPlaying(),
           '/downloads': (context) => const Downloads(),
           '/stats': (context) => const Stats(),
+          '/recent': (context) => const RecentlyPlayed()
         },
         onGenerateRoute: (RouteSettings settings) {
           if (settings.name == '/player') {

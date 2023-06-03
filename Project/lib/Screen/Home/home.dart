@@ -258,74 +258,101 @@ class _HomePageState extends State<HomePage> {
                   valueListenable: _selectedIndex,
                   builder:
                       (BuildContext context, int indexValue, Widget? child) {
-                    return NavigationRail(
-                      minWidth: 70.0,
-                      groupAlignment: 0.0,
-                      backgroundColor:
-                          // Colors.transparent,
-                          Theme.of(context).cardColor,
-                      selectedIndex: indexValue,
-                      onDestinationSelected: (int index) {
-                        _onItemTapped(index);
-                      },
-                      labelType: screenWidth > 1050
-                          ? NavigationRailLabelType.selected
-                          : NavigationRailLabelType.none,
-                      selectedLabelTextStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      unselectedLabelTextStyle: TextStyle(
-                        color: Theme.of(context).iconTheme.color,
-                      ),
-                      selectedIconTheme: Theme.of(context).iconTheme.copyWith(
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                      unselectedIconTheme: Theme.of(context).iconTheme,
-                      useIndicator: screenWidth < 1050,
-                      indicatorColor: Theme.of(context)
-                          .colorScheme
-                          .secondary
-                          .withOpacity(0.2),
-                      leading: screenWidth > 1050
-                          ? null
-                          : Builder(
-                              builder: (context) => Transform.rotate(
-                                angle: 22 / 7 * 2,
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.menu_rounded,
-                                  ),
-                                  // color: Theme.of(context).iconTheme.color,
-                                  onPressed: () {
-                                    Scaffold.of(context).openDrawer();
-                                  },
-                                  tooltip: MaterialLocalizations.of(context)
-                                      .openAppDrawerTooltip,
-                                ),
+                    return SingleChildScrollView(
+                        child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                                minHeight: MediaQuery.of(context).size.height),
+                            child: IntrinsicHeight(
+                                child: NavigationRail(
+                              minWidth: 70.0,
+                              groupAlignment: 0.0,
+                              backgroundColor:
+                                  // Colors.transparent,
+                                  Theme.of(context).cardColor,
+                              selectedIndex: indexValue,
+                              onDestinationSelected: (int index) {
+                                _onItemTapped(index);
+                              },
+                              labelType: screenWidth > 1050
+                                  ? NavigationRailLabelType.selected
+                                  : NavigationRailLabelType.none,
+                              selectedLabelTextStyle: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ),
-                      destinations: [
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.home_rounded),
-                          label: Text(AppLocalizations.of(context)!.home),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.trending_up_rounded),
-                          label: Text(
-                            AppLocalizations.of(context)!.topCharts,
-                          ),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(MdiIcons.youtube),
-                          label: Text(AppLocalizations.of(context)!.youTube),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.my_library_music_rounded),
-                          label: Text(AppLocalizations.of(context)!.library),
-                        ),
-                      ],
-                    );
+                              unselectedLabelTextStyle: TextStyle(
+                                color: Theme.of(context).iconTheme.color,
+                              ),
+                              selectedIconTheme: Theme.of(context)
+                                  .iconTheme
+                                  .copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                  ),
+                              unselectedIconTheme: Theme.of(context).iconTheme,
+                              useIndicator: screenWidth < 1050,
+                              indicatorColor: Theme.of(context)
+                                  .colorScheme
+                                  .secondary
+                                  .withOpacity(0.2),
+                              leading: screenWidth > 1050
+                                  ? null
+                                  : Builder(
+                                      builder: (context) => Transform.rotate(
+                                        angle: 22 / 7 * 2,
+                                        child: CircleAvatar(
+                                          backgroundColor:
+                                              Theme.of(context).cardColor,
+                                          child: IconButton(
+                                            icon: const Icon(
+                                              Icons.menu_rounded,
+                                            ),
+                                            color: Theme.of(context)
+                                                .iconTheme
+                                                .color,
+                                            onPressed: () {
+                                              Scaffold.of(context).openDrawer();
+                                            },
+                                            tooltip: MaterialLocalizations.of(
+                                                    context)
+                                                .openAppDrawerTooltip,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                              destinations: [
+                                NavigationRailDestination(
+                                  icon: const Icon(Icons.home_rounded),
+                                  label:
+                                      Text(AppLocalizations.of(context)!.home),
+                                ),
+                                NavigationRailDestination(
+                                  icon: const Icon(MdiIcons.youtube),
+                                  label: Text(
+                                      AppLocalizations.of(context)!.youTube),
+                                ),
+                                NavigationRailDestination(
+                                  icon: const Icon(
+                                      Icons.my_library_music_rounded),
+                                  label: Text(
+                                      AppLocalizations.of(context)!.library),
+                                ),
+                                if (sectionsToShow.contains('Settings'))
+                                  NavigationRailDestination(
+                                    icon: const Icon(Icons.settings_rounded),
+                                    label: Text(
+                                      AppLocalizations.of(context)!.settings,
+                                    ),
+                                  ),
+                                if (sectionsToShow.contains('Top Charts'))
+                                  NavigationRailDestination(
+                                    icon: const Icon(Icons.trending_up_rounded),
+                                    label: Text(
+                                      AppLocalizations.of(context)!.topCharts,
+                                    ),
+                                  ),
+                              ],
+                            ))));
                   },
                 ),
               Expanded(
@@ -594,31 +621,37 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     child: Transform.rotate(
                                       angle: 22 / 7 * 2,
-                                      child: IconButton(
-                                        icon: const Icon(
-                                          Icons.menu_rounded,
+                                      child: CircleAvatar(
+                                        radius: 25,
+                                        backgroundColor:
+                                            Theme.of(context).cardColor,
+                                        child: IconButton(
+                                          icon: const Icon(
+                                            Icons.menu_rounded,
+                                          ),
+                                          color:
+                                              Theme.of(context).iconTheme.color,
+                                          onPressed: () {
+                                            Scaffold.of(context).openDrawer();
+                                          },
+                                          tooltip:
+                                              MaterialLocalizations.of(context)
+                                                  .openAppDrawerTooltip,
                                         ),
-                                        // color: Theme.of(context).iconTheme.color,
-                                        onPressed: () {
-                                          Scaffold.of(context).openDrawer();
-                                        },
-                                        tooltip:
-                                            MaterialLocalizations.of(context)
-                                                .openAppDrawerTooltip,
                                       ),
                                     ),
                                   ),
                                 ),
                             ],
                           ),
-                          if (sectionsToShow.contains('Top Charts'))
-                            TopCharts(
-                              pageController: _pageController,
-                            ),
                           const YouTube(),
                           const LibraryPage(),
                           if (sectionsToShow.contains('Settings'))
                             SettingPage(callback: callback),
+                          if (sectionsToShow.contains('Top Charts'))
+                            TopCharts(
+                              pageController: _pageController,
+                            ),
                         ],
                       ),
                     ),
@@ -651,15 +684,6 @@ class _HomePageState extends State<HomePage> {
                           selectedColor:
                               Theme.of(context).colorScheme.secondary,
                         ),
-                        if (sectionsToShow.contains('Top Charts'))
-                          SalomonBottomBarItem(
-                            icon: const Icon(Icons.trending_up_rounded),
-                            title: Text(
-                              AppLocalizations.of(context)!.topCharts,
-                            ),
-                            selectedColor:
-                                Theme.of(context).colorScheme.secondary,
-                          ),
                         SalomonBottomBarItem(
                           icon: const Icon(MdiIcons.youtube),
                           title: Text(AppLocalizations.of(context)!.youTube),
@@ -679,6 +703,15 @@ class _HomePageState extends State<HomePage> {
                             selectedColor:
                                 Theme.of(context).colorScheme.secondary,
                           ),
+                        if (sectionsToShow.contains('Top Charts'))
+                          SalomonBottomBarItem(
+                            icon: const Icon(Icons.trending_up_rounded),
+                            title: Text(
+                              AppLocalizations.of(context)!.topCharts,
+                            ),
+                            selectedColor:
+                                Theme.of(context).colorScheme.secondary,
+                          ),
                       ],
                     ),
                   );
@@ -690,7 +723,7 @@ class _HomePageState extends State<HomePage> {
 
   callback() {
     sectionsToShow = Hive.box('settings').get('sectionsToShow',
-        defaultValue: ['Home', 'Top Charts', 'Youtube', 'Library']) as List;
+        defaultValue: ['Home', 'YouTube', 'Library', 'Settings']) as List;
     setState(() {});
   }
 }
