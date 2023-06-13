@@ -26,8 +26,8 @@ class popularity_recommender_py():
     #Use the popularity based recommender system model to
     #make recommendations
     def recommend(self):    
-        top_trending = self.popularity_recommendations[self.item_id].to_numpy().tolist()
-        return top_trending
+        top_trending = self.popularity_recommendations
+        return top_trending.to_numpy().tolist()
     
 
 #Class for Item similarity based Recommender System model
@@ -58,7 +58,6 @@ class item_similarity_recommender_py():
     #Get unique items (songs) in the training data
     def get_all_items_train_data(self):
         all_items = list(self.train_data[self.item_id].unique())
-            
         return all_items
         
     #Construct cooccurence matrix
@@ -120,7 +119,7 @@ class item_similarity_recommender_py():
         sort_index = sorted(((e,i) for i,e in enumerate(list(user_sim_scores))), reverse=True)
     
         #Create a dataframe from the following
-        columns = ['user_id', 'song', 'score', 'rank']
+        columns = ['user_id','song', 'score', 'rank']
         #index = np.arange(1) # array of numbers for the number of samples
         df = pandas.DataFrame(columns=columns)
          
@@ -136,7 +135,7 @@ class item_similarity_recommender_py():
             print("The current user has no songs for training the item similarity based recommendation model.")
             return -1
         else:
-            return df
+            return df['song']
  
     #Create the item similarity based recommender system model
     def create(self, train_data, user_id, item_id):
@@ -159,7 +158,6 @@ class item_similarity_recommender_py():
         #B. Get all unique items (songs) in the training data
         ######################################################
         all_songs = self.get_all_items_train_data()
-        
         print("no. of unique songs in the training set: %d" % len(all_songs))
          
         ###############################################
@@ -173,12 +171,13 @@ class item_similarity_recommender_py():
         #######################################################
         df_recommendations = self.generate_top_recommendations(user, cooccurence_matrix, all_songs, user_songs)
                 
-        return df_recommendations
+        return df_recommendations.to_numpy().tolist()
     
     #Get similar items to given items
     def get_similar_items(self, item_list):
         
         user_songs = item_list
+        # print(self.train_data.query('songId == {item_list}').to_numpy().tolist())
         
         ######################################################
         #B. Get all unique items (songs) in the training data
@@ -199,4 +198,4 @@ class item_similarity_recommender_py():
         user = ""
         df_recommendations = self.generate_top_recommendations(user, cooccurence_matrix, all_songs, user_songs)
          
-        return df_recommendations
+        return self.train_data[self.train_data['songId'].isin(df_recommendations.to_numpy().tolist())].drop_duplicates(['songId'])

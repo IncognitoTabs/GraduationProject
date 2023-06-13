@@ -21,12 +21,12 @@ class recommender_system():
     
     def get_item_similarity(self, keywork):
         ir = Recommenders.item_similarity_recommender_py()
-        ir.create(self.song_df, 'userId', 'song')
+        ir.create(self.song_df, 'userId', 'songId')
         return ir.get_similar_items(keywork)
     
     def get_user_similarity(self, user_id):
         ir = Recommenders.item_similarity_recommender_py()
-        ir.create(self.song_df, 'userId', 'song')
+        ir.create(self.song_df, 'userId', 'songId')
         return ir.recommend(user_id)
         
 
