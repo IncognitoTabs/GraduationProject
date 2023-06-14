@@ -15,6 +15,10 @@ def get_trending_songs():
 def get_user_similar_songs(user_id):
     return jsonify(self_sv.get_user_similar_songs(user_id))
 
+@app.get('/get_item_similar_songs/<songId>')
+def get_item_similar_songs(songId):
+    return jsonify(self_sv.get_item_similar_songs(songId))
+
 if __name__ == "__main__":
     http_server = WSGIServer(('', 5000), app)
     http_server.serve_forever()

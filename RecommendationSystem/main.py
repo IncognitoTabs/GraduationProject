@@ -17,16 +17,27 @@ class recommender_system():
     def get_popularity(self):
         pr = Recommenders.popularity_recommender_py()
         pr.create(self.song_df, 'songId')
-        return pr.recommend()
+        popular_songIds = pr.recommend()
+        return self.get_song_info_by_list_id(popular_songIds).drop_duplicates(['songId'])
     
-    def get_item_similarity(self, keywork):
+    def get_item_similarity(self, song_id):
         ir = Recommenders.item_similarity_recommender_py()
         ir.create(self.song_df, 'userId', 'songId')
-        return ir.get_similar_items(keywork)
+        item_similar_songIds = ir.get_similar_items(song_id)
+        return self.get_song_info_by_list_id(item_similar_songIds).drop_duplicates(['songId'])
     
     def get_user_similarity(self, user_id):
         ir = Recommenders.item_similarity_recommender_py()
         ir.create(self.song_df, 'userId', 'songId')
-        return ir.recommend(user_id)
+        user_similar_songIds = ir.recommend(user_id)
+        return self.get_song_info_by_list_id(user_similar_songIds).drop_duplicates(['songId'])
+    
+    def get_song_info_by_list_id(self, list_id):
+        columns = ['320kbps','album','album_id','artist','duration','genre','has_lyrics','songId','image','language','perma_url','release_date','subtitle','title','url','year']
+        list_result = pd.DataFrame(columns= columns)
+        for id in list_id:
+            result = self.songs.query('songId == @id')
+            list_result = pd.concat([list_result, result], ignore_index=True)
+        return list_result
         
 

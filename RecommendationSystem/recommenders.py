@@ -26,7 +26,7 @@ class popularity_recommender_py():
     #Use the popularity based recommender system model to
     #make recommendations
     def recommend(self):    
-        top_trending = self.popularity_recommendations
+        top_trending = self.popularity_recommendations[self.item_id]
         return top_trending.to_numpy().tolist()
     
 
@@ -198,4 +198,4 @@ class item_similarity_recommender_py():
         user = ""
         df_recommendations = self.generate_top_recommendations(user, cooccurence_matrix, all_songs, user_songs)
          
-        return self.train_data[self.train_data['songId'].isin(df_recommendations.to_numpy().tolist())].drop_duplicates(['songId'])
+        return df_recommendations.to_numpy().tolist()
