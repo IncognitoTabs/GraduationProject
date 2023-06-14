@@ -1,9 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:incognito_music/CustomWidgets/download_button.dart';
 import 'package:incognito_music/CustomWidgets/empty_screen.dart';
 import 'package:incognito_music/CustomWidgets/gradient_containers.dart';
+import 'package:incognito_music/CustomWidgets/like_button.dart';
 import 'package:incognito_music/CustomWidgets/miniplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hive/hive.dart';
+import 'package:incognito_music/Services/player_service.dart';
 
 class RecentlyPlayed extends StatefulWidget {
   const RecentlyPlayed({super.key});
@@ -72,87 +76,80 @@ class _RecentlyPlayedState extends State<RecentlyPlayed> {
                       itemCount: _songs.length,
                       itemExtent: 70.0,
                       itemBuilder: (context, index) {
-                        // return _songs.isEmpty
-                        //     ? const SizedBox()
-                        //     : Dismissible(
-                        //         key: Key(_songs[index]['id'].toString()),
-                        //         direction: DismissDirection.endToStart,
-                        //         background: const ColoredBox(
-                        //           color: Colors.redAccent,
-                        //           child: Padding(
-                        //             padding: EdgeInsets.symmetric(
-                        //               horizontal: 15.0,
-                        //             ),
-                        //             child: const Row(
-                        //               mainAxisAlignment: MainAxisAlignment.end,
-                        //               children: [
-                        //                 Icon( Icons.delete_outline_rounded)
-                        //               ],
-                        //             ),
-                        //           ),
-                        //         ),
-                        //         onDismissed: (direction) {
-                        //           _songs.removeAt(index);
-                        //           setState(() {});
-                        //           Hive.box('cache').put('recentSongs', _songs);
-                        //         },
-                        //         child: ListTile(
-                        //           leading: Card(
-                        //             margin: EdgeInsets.zero,
-                        //             elevation: 5,
-                        //             shape: RoundedRectangleBorder(
-                        //               borderRadius: BorderRadius.circular(7.0),
-                        //             ),
-                        //             clipBehavior: Clip.antiAlias,
-                        //             child: CachedNetworkImage(
-                        //               fit: BoxFit.cover,
-                        //               errorWidget: (context, _, __) =>
-                        //                   const Image(
-                        //                 fit: BoxFit.cover,
-                        //                 image: AssetImage('assets/cover.jpg'),
-                        //               ),
-                        //               imageUrl: _songs[index]['image']
-                        //                   .toString()
-                        //                   .replaceAll('http:', 'https:'),
-                        //               placeholder: (context, url) =>
-                        //                   const Image(
-                        //                 fit: BoxFit.cover,
-                        //                 image: AssetImage('assets/cover.jpg'),
-                        //               ),
-                        //             ),
-                        //           ),
-                        //           trailing: Row(
-                        //             mainAxisSize: MainAxisSize.min,
-                        //             children: [
-                        //               // DownloadButton(
-                        //               //   data: _songs[index] as Map,
-                        //               //   icon: 'download',
-                        //               // ),
-                        //               LikeButton(
-                        //                 mediaItem: null,
-                        //                 data: _songs[index] as Map,
-                        //               ),
-                        //             ],
-                        //           ),
-                        //           title: Text(
-                        //             '${_songs[index]["title"]}',
-                        //             overflow: TextOverflow.ellipsis,
-                        //           ),
-                        //           subtitle: Text(
-                        //             '${_songs[index]["artist"]}',
-                        //             overflow: TextOverflow.ellipsis,
-                        //           ),
-                        //           onTap: () {
-                        //             PlayerInvoke.init(
-                        //               songsList: _songs,
-                        //               index: index,
-                        //               isOffline: false,
-                        //             );
-                        //             Navigator.pushNamed(context, '/player');
-                        //           },
-                        //         ),
-                        //       );
-                        return const SizedBox();
+                        return _songs.isEmpty
+                            ? const SizedBox()
+                            : Dismissible(
+                                key: Key(_songs[index]['id'].toString()),
+                                direction: DismissDirection.endToStart,
+                                background: const ColoredBox(
+                                  color: Colors.redAccent,
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 15.0,
+                                    ),
+                                  ),
+                                ),
+                                onDismissed: (direction) {
+                                  _songs.removeAt(index);
+                                  setState(() {});
+                                  Hive.box('cache').put('recentSongs', _songs);
+                                },
+                                child: ListTile(
+                                  leading: Card(
+                                    margin: EdgeInsets.zero,
+                                    elevation: 5,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: CachedNetworkImage(
+                                      fit: BoxFit.cover,
+                                      errorWidget: (context, _, __) =>
+                                          const Image(
+                                        fit: BoxFit.cover,
+                                        image: AssetImage('assets/cover.jpg'),
+                                      ),
+                                      imageUrl: _songs[index]['image']
+                                          .toString()
+                                          .replaceAll('http:', 'https:'),
+                                      placeholder: (context, url) =>
+                                          const Image(
+                                        fit: BoxFit.cover,
+                                        image: AssetImage('assets/cover.jpg'),
+                                      ),
+                                    ),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      DownloadButton(
+                                        data: _songs[index] as Map,
+                                        icon: 'download',
+                                      ),
+                                      LikeButton(
+                                        mediaItem: null,
+                                        data: _songs[index] as Map,
+                                      ),
+                                    ],
+                                  ),
+                                  title: Text(
+                                    '${_songs[index]["title"]}',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  subtitle: Text(
+                                    '${_songs[index]["artist"]}',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  onTap: () {
+                                    PlayerInvoke.init(
+                                      songsList: _songs,
+                                      index: index,
+                                      isOffline: false,
+                                    );
+                                    Navigator.pushNamed(context, '/player');
+                                  },
+                                ),
+                              );
                       },
                     ),
             ),

@@ -5,7 +5,6 @@ import 'package:incognito_music/CustomWidgets/miniplayer.dart';
 import 'package:incognito_music/CustomWidgets/snack_bar.dart';
 import 'package:incognito_music/CustomWidgets/textinput_dialog.dart';
 import 'package:incognito_music/Helpers/import_export_playlist.dart';
-import 'package:incognito_music/Helpers/playlist.dart';
 import 'package:incognito_music/Helpers/search_add_playlist.dart';
 import 'package:incognito_music/Helpers/spotify_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -45,26 +44,14 @@ class ImportPlaylist extends StatelessWidget {
               body: ListView.builder(
                 shrinkWrap: true,
                 physics: const BouncingScrollPhysics(),
-                itemCount: 5,
+                itemCount: 3,
                 itemBuilder: (cntxt, index) {
                   return ListTile(
-                    title: Text(
-                      index == 0
-                          ? AppLocalizations.of(context)!.importFile
-                          : index == 1
-                              ? AppLocalizations.of(context)!.importSpotify
-                              : index == 2
-                                  ? AppLocalizations.of(context)!.importYt
-                                  : index == 3
-                                      ? AppLocalizations.of(
-                                          context,
-                                        )!
-                                          .importJioSaavn
-                                      : AppLocalizations.of(
-                                          context,
-                                        )!
-                                          .importResso,
-                    ),
+                    title: Text(index == 0
+                        ? AppLocalizations.of(context)!.importFile
+                        : index == 1
+                            ? AppLocalizations.of(context)!.importSpotify
+                            : AppLocalizations.of(context)!.importYt),
                     leading: SizedBox.square(
                       dimension: 50,
                       child: Center(
@@ -93,23 +80,11 @@ class ImportPlaylist extends StatelessWidget {
                                   playlistNames,
                                   settingsBox,
                                 )
-                              : index == 2
-                                  ? importYt(
-                                      cntxt,
-                                      playlistNames,
-                                      settingsBox,
-                                    )
-                                  : index == 3
-                                      ? importJioSaavn(
-                                          cntxt,
-                                          playlistNames,
-                                          settingsBox,
-                                        )
-                                      : importResso(
-                                          cntxt,
-                                          playlistNames,
-                                          settingsBox,
-                                        );
+                              : importYt(
+                                  cntxt,
+                                  playlistNames,
+                                  settingsBox,
+                                );
                     },
                   );
                 },
@@ -236,54 +211,6 @@ Future<void> importYt(
   );
 }
 
-Future<void> importResso(
-  BuildContext context,
-  List playlistNames,
-  Box settingsBox,
-) async {
-  await showTextInputDialog(
-    context: context,
-    title: AppLocalizations.of(context)!.enterPlaylistLink,
-    initialText: '',
-    keyboardType: TextInputType.url,
-    onSubmitted: (value) async {
-      final String link = value.trim();
-      Navigator.pop(context);
-      final Map data = await SearchAddPlaylist.addRessoPlaylist(link);
-      if (data.isNotEmpty) {
-        String playName = data['title'].toString();
-        while (playlistNames.contains(playName) ||
-            await Hive.boxExists(playName)) {
-          // ignore: use_string_buffers
-          playName = '$playName (1)';
-        }
-        playlistNames.add(playName);
-        settingsBox.put(
-          'playlistNames',
-          playlistNames,
-        );
-
-        await SearchAddPlaylist.showProgress(
-          data['count'] as int,
-          context,
-          SearchAddPlaylist.ressoSongsAdder(
-            playName,
-            data['tracks'] as List,
-          ),
-        );
-      } else {
-        Logger.root.severe(
-          'Failed to import Resso playlist. Data is empty.',
-        );
-        ShowSnackBar().showSnackBar(
-          context,
-          AppLocalizations.of(context)!.failedImport,
-        );
-      }
-    },
-  );
-}
-
 Future<void> importSpotify(
   BuildContext context,
   String accessToken,
@@ -351,38 +278,6 @@ Future<void> importSpotifyViaLink(
         settingsBox,
         playlistNames,
       );
-    },
-  );
-}
-
-Future<void> importJioSaavn(
-  BuildContext context,
-  List playlistNames,
-  Box settingsBox,
-) async {
-  await showTextInputDialog(
-    context: context,
-    title: AppLocalizations.of(context)!.enterPlaylistLink,
-    initialText: '',
-    keyboardType: TextInputType.url,
-    onSubmitted: (value) async {
-      final String link = value.trim();
-      Navigator.pop(context);
-      final Map data = await SearchAddPlaylist.addJioSaavnPlaylist(
-        link,
-      );
-
-      if (data.isNotEmpty) {
-        final String playName = data['title'].toString();
-        addPlaylist(playName, data['tracks'] as List);
-        playlistNames.add(playName);
-      } else {
-        Logger.root.severe('Failed to import JioSaavn playlist. data is empty');
-        ShowSnackBar().showSnackBar(
-          context,
-          AppLocalizations.of(context)!.failedImport,
-        );
-      }
     },
   );
 }

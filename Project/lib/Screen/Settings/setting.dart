@@ -1423,9 +1423,10 @@ class _SettingPageState extends State<SettingPage>
                           if (val) {
                             sectionsToShow.value = [
                               'Home',
-                              'Top Charts',
                               'YouTube',
-                              'Library'
+                              'Library',
+                              'Settings',
+                              'Top Charts'
                             ];
                           } else {
                             sectionsToShow.value = [
