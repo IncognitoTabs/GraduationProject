@@ -497,7 +497,6 @@ class FormatResponse {
         'new_albums',
         'tag_mixes',
         'top_playlists',
-        'radio',
         'city_mod',
         'artist_recos',
         ...promoList

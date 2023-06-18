@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -10,7 +8,6 @@ import 'package:incognito_music/CustomWidgets/horizontal_albumlist.dart';
 import 'package:incognito_music/CustomWidgets/horizontal_albumlist_separated.dart';
 import 'package:incognito_music/CustomWidgets/like_button.dart';
 import 'package:incognito_music/CustomWidgets/on_hover.dart';
-import 'package:incognito_music/CustomWidgets/snack_bar.dart';
 import 'package:incognito_music/CustomWidgets/song_tile_trailing_menu.dart';
 import 'package:incognito_music/Helpers/extensions.dart';
 import 'package:incognito_music/Helpers/format.dart';
@@ -23,9 +20,8 @@ import 'package:incognito_music/Services/player_service.dart';
 bool fetched = false;
 List preferredLanguage = Hive.box('settings')
     .get('preferredLanguage', defaultValue: ['English']) as List;
-List likedRadio =
-    Hive.box('settings').get('likedRadio', defaultValue: []) as List;
 Map data = Hive.box('cache').get('homepage', defaultValue: {}) as Map;
+List<dynamic> trendingSongs = [];
 List lists = ['recent', 'playlist', ...?data['collections']];
 
 class MusicHomePage extends StatefulWidget {
@@ -52,6 +48,8 @@ class _MusicHomePageState extends State<MusicHomePage>
   int playlistIndex = 1;
 
   Future<void> getHomePageData() async {
+    trendingSongs = await MusicAPI().getTrendingSongs();
+    
     Map recievedData = await MusicAPI().fetchHomePageData();
     if (recievedData.isNotEmpty) {
       Hive.box('cache').put('homepage', recievedData);
@@ -76,16 +74,14 @@ class _MusicHomePageState extends State<MusicHomePage>
     switch (type) {
       case 'charts':
         return '';
-      case 'radio_station':
-        return 'Radio • ${(item['suctitle']?.toString() ?? '').isEmpty ? 'JioSaavn' : item['subtitle']?.toString().unescape()}';
       case 'playlist':
-        return 'Playlist • ${(item['subtitle']?.toString() ?? '').isEmpty ? 'JioSaavn' : item['subtitle'].toString().unescape()}';
+        return 'Playlist • ${(item['subtitle']?.toString() ?? '').isEmpty ? 'Incognito' : item['subtitle'].toString().unescape()}';
       case 'song':
         return 'Single • ${item['artist']?.toString().unescape()}';
       case 'mix':
-        return 'Mix • ${(item['subtitle']?.toString() ?? '').isEmpty ? 'JioSaavn' : item['subtitle'].toString().unescape()}';
+        return 'Mix • ${(item['subtitle']?.toString() ?? '').isEmpty ? 'Incognito' : item['subtitle'].toString().unescape()}';
       case 'show':
-        return 'Podcast • ${(item['subtitle']?.toString() ?? '').isEmpty ? 'JioSaavn' : item['subtitle'].toString().unescape()}';
+        return 'Podcast • ${(item['subtitle']?.toString() ?? '').isEmpty ? 'Incognito' : item['subtitle'].toString().unescape()}';
       case 'album':
         final artists = item['more_info']?['artistMap']?['artists']
             .map((artist) => artist['name'])
@@ -179,8 +175,8 @@ class _MusicHomePageState extends State<MusicHomePage>
               }
               if (idx == playlistIndex) {
                 return (playlistNames.isEmpty ||
-                        !(Hive.box('settings')
-                            .get('showPlaylist', defaultValue: false) as bool) ||
+                        !(Hive.box('settings').get('showPlaylist',
+                            defaultValue: false) as bool) ||
                         (playlistNames.length == 1 &&
                             playlistNames.first == 'Favorite Songs' &&
                             likedCount() == 0))
@@ -421,24 +417,10 @@ class _MusicHomePageState extends State<MusicHomePage>
                             physics: const BouncingScrollPhysics(),
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 10),
-                            itemCount: data['modules'][lists[idx]]?['title']
-                                        ?.toString() ==
-                                    'Radio Stations'
-                                ? (data[lists[idx]] as List).length +
-                                    likedRadio.length
-                                : (data[lists[idx]] as List).length,
+                            itemCount: (data[lists[idx]] as List).length,
                             itemBuilder: (context, index) {
                               Map item;
-                              if (data['modules'][lists[idx]]?['title']
-                                      ?.toString() ==
-                                  'Radio Stations') {
-                                index < likedRadio.length
-                                    ? item = likedRadio[index] as Map
-                                    : item = data[lists[idx]]
-                                        [index - likedRadio.length] as Map;
-                              } else {
-                                item = data[lists[idx]][index] as Map;
-                              }
+                              item = data[lists[idx]][index] as Map;
                               final currentSongList = data[lists[idx]]
                                   .where((e) => e['type'] == 'song')
                                   .toList();
@@ -471,11 +453,7 @@ class _MusicHomePageState extends State<MusicHomePage>
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(
-                                                    item['type'] ==
-                                                            'radio_station'
-                                                        ? 1000.0
-                                                        : 15.0,
-                                                  ),
+                                                          15.0),
                                                 ),
                                                 clipBehavior: Clip.antiAlias,
                                                 child: CachedNetworkImage(
@@ -520,75 +498,30 @@ class _MusicHomePageState extends State<MusicHomePage>
                                   );
                                 },
                                 onTap: () {
-                                  if (item['type'] == 'radio_station') {
-                                    ShowSnackBar().showSnackBar(
-                                      context,
-                                      AppLocalizations.of(context)!
-                                          .connectingRadio,
-                                      duration: const Duration(seconds: 2),
+                                  if (item['type'] == 'song') {
+                                    PlayerInvoke.init(
+                                      songsList: currentSongList as List,
+                                      index: currentSongList.indexWhere(
+                                        (e) => e['id'] == item['id'],
+                                      ),
+                                      isOffline: false,
                                     );
-                                    MusicAPI()
-                                        .createRadio(
-                                      names: item['more_info']
-                                                      ['featured_station_type']
-                                                  .toString() ==
-                                              'artist'
-                                          ? [
-                                              item['more_info']['query']
-                                                  .toString()
-                                            ]
-                                          : [item['id'].toString()],
-                                      language: item['more_info']['language']
-                                              ?.toString() ??
-                                          'hindi',
-                                      stationType: item['more_info']
-                                              ['featured_station_type']
-                                          .toString(),
-                                    )
-                                        .then((value) {
-                                      if (value != null) {
-                                        MusicAPI()
-                                            .getRadioSongs(stationId: value)
-                                            .then((value) {
-                                          PlayerInvoke.init(
-                                            songsList: value,
-                                            index: 0,
-                                            isOffline: false,
-                                            shuffle: true,
-                                          );
-                                          Navigator.pushNamed(
-                                            context,
-                                            '/player',
-                                          );
-                                        });
-                                      }
-                                    });
-                                  } else {
-                                    if (item['type'] == 'song') {
-                                      PlayerInvoke.init(
-                                        songsList: currentSongList as List,
-                                        index: currentSongList.indexWhere(
-                                          (e) => e['id'] == item['id'],
-                                        ),
-                                        isOffline: false,
-                                      );
-                                    }
-                                    item['type'] == 'song'
-                                        ? Navigator.pushNamed(
-                                            context,
-                                            '/player',
-                                          )
-                                        : Navigator.push(
-                                            context,
-                                            PageRouteBuilder(
-                                              opaque: false,
-                                              pageBuilder: (_, __, ___) =>
-                                                  SongsListPage(
-                                                listItem: item,
-                                              ),
-                                            ),
-                                          );
                                   }
+                                  item['type'] == 'song'
+                                      ? Navigator.pushNamed(
+                                          context,
+                                          '/player',
+                                        )
+                                      : Navigator.push(
+                                          context,
+                                          PageRouteBuilder(
+                                            opaque: false,
+                                            pageBuilder: (_, __, ___) =>
+                                                SongsListPage(
+                                              listItem: item,
+                                            ),
+                                          ),
+                                        );
                                 },
                                 child: SizedBox(
                                   width: boxSize - 30,
@@ -596,11 +529,8 @@ class _MusicHomePageState extends State<MusicHomePage>
                                     child: Card(
                                       elevation: 5,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          item['type'] == 'radio_station'
-                                              ? 1000.0
-                                              : 10.0,
-                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
                                       ),
                                       clipBehavior: Clip.antiAlias,
                                       child: CachedNetworkImage(
@@ -658,10 +588,7 @@ class _MusicHomePageState extends State<MusicHomePage>
                                                       : boxSize - 30,
                                                   child: child,
                                                 ),
-                                                if (isHover &&
-                                                    (item['type'] == 'song' ||
-                                                        item['type'] ==
-                                                            'radio_station'))
+                                                if (isHover)
                                                   Positioned.fill(
                                                     child: Container(
                                                       margin:
@@ -672,12 +599,7 @@ class _MusicHomePageState extends State<MusicHomePage>
                                                         color: Colors.black54,
                                                         borderRadius:
                                                             BorderRadius
-                                                                .circular(
-                                                          item['type'] ==
-                                                                  'radio_station'
-                                                              ? 1000.0
-                                                              : 10.0,
-                                                        ),
+                                                                .circular(10.0),
                                                       ),
                                                       child: Center(
                                                         child: DecoratedBox(
@@ -699,52 +621,6 @@ class _MusicHomePageState extends State<MusicHomePage>
                                                           ),
                                                         ),
                                                       ),
-                                                    ),
-                                                  ),
-                                                if (item['type'] ==
-                                                        'radio_station' &&
-                                                    (Platform.isAndroid ||
-                                                        Platform.isIOS ||
-                                                        isHover))
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.topRight,
-                                                    child: IconButton(
-                                                      icon: likedRadio
-                                                              .contains(item)
-                                                          ? const Icon(
-                                                              Icons
-                                                                  .favorite_rounded,
-                                                              color: Colors.red,
-                                                            )
-                                                          : const Icon(
-                                                              Icons
-                                                                  .favorite_border_rounded,
-                                                            ),
-                                                      tooltip: likedRadio
-                                                              .contains(item)
-                                                          ? AppLocalizations.of(
-                                                              context,
-                                                            )!
-                                                              .unlike
-                                                          : AppLocalizations.of(
-                                                              context,
-                                                            )!
-                                                              .like,
-                                                      onPressed: () {
-                                                        likedRadio
-                                                                .contains(item)
-                                                            ? likedRadio
-                                                                .remove(item)
-                                                            : likedRadio
-                                                                .add(item);
-                                                        Hive.box('settings')
-                                                            .put(
-                                                          'likedRadio',
-                                                          likedRadio,
-                                                        );
-                                                        setState(() {});
-                                                      },
                                                     ),
                                                   ),
                                                 if (item['type'] == 'song' ||

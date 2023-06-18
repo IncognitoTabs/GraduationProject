@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "undefined/subscriptions/bb7696b1-7dc4-4760-a38f-36bac902a9b8/resourceGroups/appsvc_linux_centralus_basic/providers/Microsoft.Web/sites/incognito-music",
+    "appService.deploySubpath": "."
+}
