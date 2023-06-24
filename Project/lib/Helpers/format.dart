@@ -493,10 +493,8 @@ class FormatResponse {
       }
       data['collections'] = [
         'new_trending',
-        'charts',
         'new_albums',
         'tag_mixes',
-        'top_playlists',
         'city_mod',
         'artist_recos',
         ...promoList

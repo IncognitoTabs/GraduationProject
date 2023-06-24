@@ -465,7 +465,7 @@
   "@viewArtist": {},
   "viewAll": "Tất cả",
   "@viewAll": {},
-  "viral": "Viral",
+  "viral": "Bài hát nổi bật",
   "@viral": {},
   "watchVideo": "Xem Video",
   "@watchVideo": {},
@@ -650,5 +650,7 @@
   "back": "Trở về",
   "@back": {},
   "backupSuccess": "Sao lưu thành công",
-  "@backupSuccess": {}
+  "@backupSuccess": {},
+  "recommend": "Đề xuất cho bạn",
+  "@recommend": {}
 }

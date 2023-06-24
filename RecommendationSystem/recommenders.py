@@ -160,7 +160,7 @@ class item_similarity_recommender_py():
     
     #Get similar items to given item
     def get_similar_items(self, item_id):
-        tfidf = TfidfVectorizer(stop_words='english')
+        tfidf = TfidfVectorizer()
         all_tags = self.train_data['all_tags']
         data = tfidf.fit_transform(all_tags).toarray()
         similarity = cosine_similarity(data)

@@ -5,18 +5,15 @@ from nltk.stem.porter import PorterStemmer
 class recommender_system():
     def __init__(self) :
         self.songs_df = None
-        self.songs = []
-        self.stats = []
+        self.songs_copy_df = None
         self.stats_df = None
         self.song_stat_df = None
         self.ps=PorterStemmer()
 
     def data_preprocessing(self, songs, stats):
-        self.songs = songs
-        self.stats = stats
-        self.songs_df = pd.DataFrame(songs).rename(columns={'id' : 'songId'}).dropna()
+        self.songs_df = pd.DataFrame(songs).rename(columns={'id' : 'songId'}).dropna().drop_duplicates(['songId', 'title'])
         self.stats_df = pd.DataFrame(stats)
-        self.song_stat_df = pd.merge(self.stats_df, self.songs_df.drop_duplicates(['songId']), on='songId', how='left')
+        self.song_stat_df = pd.merge(self.stats_df, self.songs_df, on='songId', how='left')
         self.song_stat_df.drop(columns=['320kbps','album_id' ,'duration','has_lyrics' , 'image','perma_url', 'url', 'release_date', 'genre'],inplace=True)
         # to convert string into list of strings 
         self.song_stat_df['title'] = self.song_stat_df['title'].apply(self.spliting)
@@ -28,9 +25,7 @@ class recommender_system():
         self.song_stat_df['all_tags'] = self.song_stat_df['title'] + self.song_stat_df['artist'] + self.song_stat_df['album'] + self.song_stat_df['subtitle']+ self.song_stat_df['year']
         self.song_stat_df.drop(columns=['title','artist' ,'album','language' , 'subtitle','year'],inplace=True)
 
-        self.song_stat_df['all_tags']=self.song_stat_df['all_tags'].apply(self.remove_accents)
         self.song_stat_df['all_tags']=self.song_stat_df['all_tags'].apply(self.convert_lower)
-        
         self.song_stat_df['all_tags'] = self.song_stat_df['all_tags'].apply(self.steming)
         self.song_stat_df['all_tags'] = self.song_stat_df['all_tags'].apply(lambda x: " ".join(x))
 
@@ -49,19 +44,6 @@ class recommender_system():
         for i in text:
             l.append(self.ps.stem(i))
         return l
-    def remove_accents(self, input_str):
-        s1 = u'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝàáâãèéêìíòóôõùúýĂăĐđĨĩŨũƠơƯưẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀềỂểỄễỆệỈỉỊịỌọỎỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹ'
-        s0 = u'AAAAEEEIIOOOOUUYaaaaeeeiioooouuyAaDdIiUuOoUuAaAaAaAaAaAaAaAaAaAaAaAaEeEeEeEeEeEeEeEeIiIiOoOoOoOoOoOoOoOoOoOoOoOoUuUuUuUuUuUuUuYyYyYyYy'
-        list_i = []
-        for i in input_str:
-            s = ''
-            for c in i:
-                if c in s1:
-                    s += s0[s1.index(c)]
-                else:
-                    s += c
-            list_i.append(s)
-        return list_i
     
     def get_popularity(self):
         pr = Recommenders.popularity_recommender_py()
@@ -88,6 +70,7 @@ class recommender_system():
         for id in list_id:
             result = self.songs_df.query('songId == @id')
             list_result = pd.concat([list_result, result], ignore_index=True).drop_duplicates(['songId'])
+        list_result = list_result.rename(columns={ 'songId': 'id'})
         for i in range(0,len(list_result)):
             list_result_json.append(list_result.iloc[i].to_dict())
         return list_result_json

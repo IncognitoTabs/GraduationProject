@@ -35,12 +35,58 @@ class MusicAPI {
   };
 
   Future<List<dynamic>> getTrendingSongs() async {
-     List<dynamic> data = [];
+    List<dynamic> data = [];
     preferredLanguages =
         preferredLanguages.map((lang) => lang.toLowerCase()).toList();
     final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
     headers = {'cookie': languageHeader, 'Accept': '*/*'};
     Uri url = Uri.https(recSysBaseUrl, '/get-trending-songs');
+    Response res =
+        await get(url, headers: headers).onError((error, stackTrace) {
+      return Response(
+        {
+          'status': 'failure',
+          'error': error.toString(),
+        }.toString(),
+        404,
+      );
+    });
+    if (res.statusCode == 200) {
+      data = json.decode(res.body);
+    }
+    return data;
+  }
+
+  Future<List<dynamic>> getItemSimilarSongs(String? songId) async {
+    List<dynamic> data = [];
+    preferredLanguages =
+        preferredLanguages.map((lang) => lang.toLowerCase()).toList();
+    final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
+    headers = {'cookie': languageHeader, 'Accept': '*/*'};
+    Uri url = Uri.https(recSysBaseUrl, '/get_item_similar_songs/$songId');
+    Response res =
+        await get(url, headers: headers).onError((error, stackTrace) {
+      return Response(
+        {
+          'status': 'failure',
+          'error': error.toString(),
+        }.toString(),
+        404,
+      );
+    });
+    if (res.statusCode == 200) {
+      data = json.decode(res.body);
+    }
+    return data;
+  }
+
+  Future<List<dynamic>> getUserSimilarSongs(String userId) async {
+    List<dynamic> data = [];
+    preferredLanguages =
+        preferredLanguages.map((lang) => lang.toLowerCase()).toList();
+    final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
+    headers = {'cookie': languageHeader, 'Accept': '*/*'};
+    Uri url = Uri.https(recSysBaseUrl, '/get_user_similar_songs/$userId');
     Response res =
         await get(url, headers: headers).onError((error, stackTrace) {
       return Response(
