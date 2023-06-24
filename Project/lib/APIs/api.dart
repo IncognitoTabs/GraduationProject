@@ -57,6 +57,52 @@ class MusicAPI {
     return data;
   }
 
+  Future<List<dynamic>> getRandomArtists() async {
+    List<dynamic> data = [];
+    preferredLanguages =
+        preferredLanguages.map((lang) => lang.toLowerCase()).toList();
+    final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
+    headers = {'cookie': languageHeader, 'Accept': '*/*'};
+    Uri url = Uri.https(recSysBaseUrl, '/get_random_artist');
+    Response res =
+        await get(url, headers: headers).onError((error, stackTrace) {
+      return Response(
+        {
+          'status': 'failure',
+          'error': error.toString(),
+        }.toString(),
+        404,
+      );
+    });
+    if (res.statusCode == 200) {
+      data = json.decode(res.body);
+    }
+    return data;
+  }
+
+  Future<List<dynamic>> getRecommendByHobbies(List<dynamic> keywork) async {
+    List<dynamic> data = [];
+    preferredLanguages =
+        preferredLanguages.map((lang) => lang.toLowerCase()).toList();
+    final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
+    headers = {'cookie': languageHeader, 'Accept': '*/*'};
+    Uri url = Uri.https(recSysBaseUrl, '/get_recommend_by_hobbies');
+    Response res =
+        await post(url, headers: headers, body: keywork).onError((error, stackTrace) {
+      return Response(
+        {
+          'status': 'failure',
+          'error': error.toString(),
+        }.toString(),
+        404,
+      );
+    });
+    if (res.statusCode == 200) {
+      data = json.decode(res.body);
+    }
+    return data;
+  }
+
   Future<List<dynamic>> getItemSimilarSongs(String? songId) async {
     List<dynamic> data = [];
     preferredLanguages =

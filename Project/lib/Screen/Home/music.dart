@@ -10,6 +10,7 @@ import 'package:incognito_music/CustomWidgets/like_button.dart';
 import 'package:incognito_music/CustomWidgets/on_hover.dart';
 import 'package:incognito_music/CustomWidgets/song_tile_trailing_menu.dart';
 import 'package:incognito_music/Helpers/extensions.dart';
+import 'package:incognito_music/Helpers/firebase.dart';
 import 'package:incognito_music/Helpers/format.dart';
 import 'package:incognito_music/Helpers/image_resolution_modifier.dart';
 import 'package:incognito_music/Screen/Common/song_list.dart';
@@ -44,6 +45,8 @@ class MusicHomePage extends StatefulWidget {
 
 class _MusicHomePageState extends State<MusicHomePage>
     with AutomaticKeepAliveClientMixin<MusicHomePage> {
+  List selectedArtists =
+      Hive.box('settings').get('selectedArtists', defaultValue: []) ?? [];
   List recentList =
       Hive.box('cache').get('recentSongs', defaultValue: []) as List;
   Map likedArtists =
@@ -68,12 +71,22 @@ class _MusicHomePageState extends State<MusicHomePage>
         trendingSongs = updateTrending;
       });
     }
-    updateRecommend = await MusicAPI().getUserSimilarSongs(userId);
-    if (updateRecommend.isNotEmpty) {
-      setState(() {
-        Hive.box('cache').put('userRecommedSongs', updateRecommend);
-        userRecommedSongs = updateRecommend;
-      });
+    if (await FireBase().isNewUser(userId) && selectedArtists.isNotEmpty) {
+      updateRecommend = await MusicAPI().getRecommendByHobbies(selectedArtists);
+      if (updateRecommend.isNotEmpty) {
+        setState(() {
+          Hive.box('cache').put('userRecommedSongs', updateRecommend);
+          userRecommedSongs = updateRecommend;
+        });
+      }
+    } else {
+      updateRecommend = await MusicAPI().getUserSimilarSongs(userId);
+      if (updateRecommend.isNotEmpty) {
+        setState(() {
+          Hive.box('cache').put('userRecommedSongs', updateRecommend);
+          userRecommedSongs = updateRecommend;
+        });
+      }
     }
     Map recievedData = await MusicAPI().fetchHomePageData();
     if (recievedData.isNotEmpty) {
@@ -167,1138 +180,1201 @@ class _MusicHomePageState extends State<MusicHomePage>
         ? const Center(
             child: CircularProgressIndicator(),
           )
-        : ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-            itemCount: data.isEmpty ? 2 : lists.length,
-            itemBuilder: (context, idx) {
-              if (idx == recentIndex) {
-                return (recentList.isEmpty ||
-                        !(Hive.box('settings')
-                            .get('showRecent', defaultValue: true) as bool))
-                    ? const SizedBox()
-                    : Column(
-                        children: [
-                          Row(
+        : RefreshIndicator(
+            child: ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                shrinkWrap: true,
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                itemCount: data.isEmpty ? 2 : lists.length,
+                itemBuilder: (context, idx) {
+                  if (idx == recentIndex) {
+                    return (recentList.isEmpty ||
+                            !(Hive.box('settings')
+                                .get('showRecent', defaultValue: true) as bool))
+                        ? const SizedBox()
+                        : Column(
                             children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(15, 10, 0, 5),
-                                child: Text(
-                                  AppLocalizations.of(context)!.lastSession,
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(15, 10, 0, 5),
+                                    child: Text(
+                                      AppLocalizations.of(context)!.lastSession,
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  )
+                                ],
+                              ),
+                              HorizontalAlbumListSeparated(
+                                songsList: recentList,
+                                onTap: (idx) {
+                                  PlayerInvoke.init(
+                                      songsList: [recentList[idx]],
+                                      index: 0,
+                                      isOffline: false);
+                                  Navigator.pushNamed(context, '/player');
+                                },
                               )
                             ],
-                          ),
-                          HorizontalAlbumListSeparated(
-                            songsList: recentList,
-                            onTap: (idx) {
-                              PlayerInvoke.init(
-                                  songsList: [recentList[idx]],
-                                  index: 0,
-                                  isOffline: false);
-                              Navigator.pushNamed(context, '/player');
-                            },
-                          )
-                        ],
-                      );
-              }
-              if (idx == playlistIndex) {
-                return (playlistNames.isEmpty ||
-                        !(Hive.box('settings').get('showPlaylist',
-                            defaultValue: false) as bool) ||
-                        (playlistNames.length == 1 &&
-                            playlistNames.first == 'Favorite Songs' &&
-                            likedCount() == 0))
-                    ? const SizedBox()
-                    : Column(
-                        children: [
-                          Row(
+                          );
+                  }
+                  if (idx == playlistIndex) {
+                    return (playlistNames.isEmpty ||
+                            !(Hive.box('settings').get('showPlaylist',
+                                defaultValue: false) as bool) ||
+                            (playlistNames.length == 1 &&
+                                playlistNames.first == 'Favorite Songs' &&
+                                likedCount() == 0))
+                        ? const SizedBox()
+                        : Column(
                             children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(15, 10, 0, 5),
-                                child: Text(
-                                  AppLocalizations.of(context)!.yourPlaylists,
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              )
-                            ],
-                          ),
-                          SizedBox(
-                            height: boxSize + 15,
-                            child: ListView.builder(
-                                physics: const BouncingScrollPhysics(),
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0),
-                                itemCount: playlistNames.length,
-                                itemBuilder: (context, index) {
-                                  final String name =
-                                      playlistNames[index].toString();
-                                  final String showName =
-                                      playlistDetails.containsKey(name)
-                                          ? playlistDetails[name]['name']
-                                                  ?.toString() ??
-                                              name
-                                          : name;
-                                  final String? subtitle = playlistDetails[
-                                                  name] ==
-                                              null ||
-                                          playlistDetails[name]['count'] ==
-                                              null ||
-                                          playlistDetails[name]['count'] == 0
-                                      ? null
-                                      : '${playlistDetails[name]['count']} ${AppLocalizations.of(context)!.songs}';
-                                  return GestureDetector(
-                                    child: SizedBox(
-                                      width: boxSize - 30,
-                                      child: HoverBox(
-                                          child: (playlistDetails[name] ==
-                                                      null ||
-                                                  (playlistDetails[name]
-                                                          ['imageList'] as List)
-                                                      .isEmpty)
-                                              ? Card(
-                                                  elevation: 5,
-                                                  color: Colors.black,
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(15, 10, 0, 5),
+                                    child: Text(
+                                      AppLocalizations.of(context)!
+                                          .yourPlaylists,
+                                      style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: boxSize + 15,
+                                child: ListView.builder(
+                                    physics: const BouncingScrollPhysics(),
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10.0),
+                                    itemCount: playlistNames.length,
+                                    itemBuilder: (context, index) {
+                                      final String name =
+                                          playlistNames[index].toString();
+                                      final String showName =
+                                          playlistDetails.containsKey(name)
+                                              ? playlistDetails[name]['name']
+                                                      ?.toString() ??
+                                                  name
+                                              : name;
+                                      final String? subtitle = playlistDetails[
+                                                      name] ==
+                                                  null ||
+                                              playlistDetails[name]['count'] ==
+                                                  null ||
+                                              playlistDetails[name]['count'] ==
+                                                  0
+                                          ? null
+                                          : '${playlistDetails[name]['count']} ${AppLocalizations.of(context)!.songs}';
+                                      return GestureDetector(
+                                        child: SizedBox(
+                                          width: boxSize - 30,
+                                          child: HoverBox(
+                                              child: (playlistDetails[name] ==
+                                                          null ||
+                                                      (playlistDetails[name]
+                                                                  ['imageList']
+                                                              as List)
+                                                          .isEmpty)
+                                                  ? Card(
+                                                      elevation: 5,
+                                                      color: Colors.black,
+                                                      shape: RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                  10.0)),
+                                                      clipBehavior:
+                                                          Clip.antiAlias,
+                                                      child: name ==
+                                                              'Favorite Songs'
+                                                          ? const Image(
+                                                              image: AssetImage(
+                                                                  'assets/cover.jpg'))
+                                                          : const Image(
+                                                              image: AssetImage(
+                                                                  'assets/album.png'),
+                                                            ))
+                                                  : Collage(
+                                                      showGrid: true,
+                                                      imageList:
+                                                          playlistDetails[name]
+                                                                  ['imageLists']
+                                                              as List,
+                                                      placeholderImage:
+                                                          'assets/cover.jpg',
+                                                      borderRadius: 10.0,
+                                                    ),
+                                              builder: (BuildContext context,
+                                                  bool isHover, Widget? child) {
+                                                return Card(
+                                                  color: isHover
+                                                      ? null
+                                                      : Colors.transparent,
+                                                  elevation: 0,
+                                                  margin: EdgeInsets.zero,
                                                   shape: RoundedRectangleBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               10.0)),
                                                   clipBehavior: Clip.antiAlias,
-                                                  child: name ==
-                                                          'Favorite Songs'
-                                                      ? const Image(
-                                                          image: AssetImage(
-                                                              'assets/cover.jpg'))
-                                                      : const Image(
-                                                          image: AssetImage(
-                                                              'assets/album.png'),
-                                                        ))
-                                              : Collage(
-                                                  showGrid: true,
-                                                  imageList:
-                                                      playlistDetails[name]
-                                                              ['imageLists']
-                                                          as List,
-                                                  placeholderImage:
-                                                      'assets/cover.jpg',
-                                                  borderRadius: 10.0,
-                                                ),
-                                          builder: (BuildContext context,
-                                              bool isHover, Widget? child) {
-                                            return Card(
-                                              color: isHover
-                                                  ? null
-                                                  : Colors.transparent,
-                                              elevation: 0,
-                                              margin: EdgeInsets.zero,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10.0)),
-                                              clipBehavior: Clip.antiAlias,
-                                              child: Column(children: [
-                                                SizedBox.square(
-                                                  dimension: isHover
-                                                      ? boxSize - 25
-                                                      : boxSize - 30,
-                                                  child: child,
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets
-                                                          .symmetric(
-                                                      horizontal: 10.0),
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Text(
-                                                        showName,
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        softWrap: false,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .w500),
-                                                      ),
-                                                      if (subtitle != null &&
-                                                          subtitle.isNotEmpty)
-                                                        Text(
-                                                          subtitle,
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          softWrap: false,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .bodySmall!
-                                                                .color,
+                                                  child: Column(children: [
+                                                    SizedBox.square(
+                                                      dimension: isHover
+                                                          ? boxSize - 25
+                                                          : boxSize - 30,
+                                                      child: child,
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                              .symmetric(
+                                                          horizontal: 10.0),
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Text(
+                                                            showName,
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            softWrap: false,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style: const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500),
                                                           ),
-                                                        )
-                                                    ],
-                                                  ),
-                                                )
-                                              ]),
-                                            );
-                                          }),
-                                    ),
-                                    onTap: () async {
-                                      Hive.box(name);
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => LikedSongs(
-                                                  playlistName: name,
-                                                  showName: playlistDetails
-                                                          .containsKey(name)
-                                                      ? playlistDetails[name]
-                                                                  ['name']
-                                                              ?.toString() ??
-                                                          name
-                                                      : name)));
-                                    },
-                                  );
-                                }),
-                          ),
-                        ],
-                      );
-              }
-              if (lists[idx] == 'likedArtists') {
-                final List likedArtistsList = likedArtists.values.toList();
-                return likedArtists.isEmpty
-                    ? const SizedBox()
-                    : Column(
-                        children: [
-                          Row(
-                            children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(15, 10, 0, 5),
-                                child: Text(
-                                  'Liked Artists',
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.secondary,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                                          if (subtitle !=
+                                                                  null &&
+                                                              subtitle
+                                                                  .isNotEmpty)
+                                                            Text(
+                                                              subtitle,
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              softWrap: false,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: TextStyle(
+                                                                fontSize: 11,
+                                                                color: Theme.of(
+                                                                        context)
+                                                                    .textTheme
+                                                                    .bodySmall!
+                                                                    .color,
+                                                              ),
+                                                            )
+                                                        ],
+                                                      ),
+                                                    )
+                                                  ]),
+                                                );
+                                              }),
+                                        ),
+                                        onTap: () async {
+                                          Hive.box(name);
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) => LikedSongs(
+                                                      playlistName: name,
+                                                      showName: playlistDetails
+                                                              .containsKey(name)
+                                                          ? playlistDetails[
+                                                                          name]
+                                                                      ['name']
+                                                                  ?.toString() ??
+                                                              name
+                                                          : name)));
+                                        },
+                                      );
+                                    }),
                               ),
                             ],
-                          ),
-                          HorizontalAlbumsList(
-                            songsList: likedArtistsList,
-                            onTap: (int idx) {
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  opaque: false,
-                                  pageBuilder: (_, __, ___) => ArtistSearchPage(
-                                    data: likedArtistsList[idx] as Map,
+                          );
+                  }
+                  if (lists[idx] == 'likedArtists') {
+                    final List likedArtistsList = likedArtists.values.toList();
+                    return likedArtists.isEmpty
+                        ? const SizedBox()
+                        : Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(15, 10, 0, 5),
+                                    child: Text(
+                                      'Liked Artists',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              HorizontalAlbumsList(
+                                songsList: likedArtistsList,
+                                onTap: (int idx) {
+                                  Navigator.push(
+                                    context,
+                                    PageRouteBuilder(
+                                      opaque: false,
+                                      pageBuilder: (_, __, ___) =>
+                                          ArtistSearchPage(
+                                        data: likedArtistsList[idx] as Map,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                  }
+                  if (lists[idx] == 'trendings') {
+                    return trendingSongs.isEmpty
+                        ? const SizedBox()
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(15, 10, 0, 5),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.viral,
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .secondary,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                        ],
-                      );
-              }
-              if (lists[idx] == 'trendings') {
-                return trendingSongs.isEmpty
-                    ? const SizedBox()
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(15, 10, 0, 5),
-                              child: Text(
-                                AppLocalizations.of(context)!.viral,
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.secondary,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: boxSize + 15,
-                              child: ListView.builder(
-                                physics: const BouncingScrollPhysics(),
-                                scrollDirection: Axis.horizontal,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                itemCount: trendingSongs.length,
-                                itemBuilder: (context, index) {
-                                  Map item;
-                                  item = trendingSongs[index] as Map;
-                                  final subTitle = item['subtitle'];
-                                  if (item.isEmpty) return const SizedBox();
-                                  return GestureDetector(
-                                    onLongPress: () {
-                                      Feedback.forLongPress(context);
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return InteractiveViewer(
-                                            child: Stack(
-                                              children: [
-                                                GestureDetector(
-                                                  onTap: () =>
-                                                      Navigator.pop(context),
-                                                ),
-                                                AlertDialog(
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15.0),
-                                                  ),
-                                                  backgroundColor:
-                                                      Colors.transparent,
-                                                  contentPadding:
-                                                      EdgeInsets.zero,
-                                                  content: Card(
-                                                    elevation: 5,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15.0),
-                                                    ),
-                                                    clipBehavior:
-                                                        Clip.antiAlias,
-                                                    child: CachedNetworkImage(
-                                                      fit: BoxFit.cover,
-                                                      errorWidget:
-                                                          (context, _, __) =>
-                                                              const Image(
-                                                        fit: BoxFit.cover,
-                                                        image: AssetImage(
-                                                          'assets/cover.jpg',
-                                                        ),
-                                                      ),
-                                                      imageUrl: getImageUrl(
-                                                        item['image']
-                                                            .toString(),
-                                                      ),
-                                                      placeholder:
-                                                          (context, url) =>
-                                                              const Image(
-                                                        fit: BoxFit.cover,
-                                                        image: AssetImage(
-                                                            'assets/cover.jpg'),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
-                                    onTap: () async {
-                                      List currentSongList = [];
-                                      currentSongList.add(item);
-                                      PlayerInvoke.init(
-                                          songsList: currentSongList,
-                                          itemId: item['id'],
-                                          index: 0,
-                                          isOffline: false,
-                                          recommend: true);
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/player',
-                                      );
-                                    },
-                                    child: SizedBox(
-                                      width: boxSize - 30,
-                                      child: HoverBox(
-                                        child: Card(
-                                          elevation: 5,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          clipBehavior: Clip.antiAlias,
-                                          child: CachedNetworkImage(
-                                            fit: BoxFit.cover,
-                                            errorWidget: (context, _, __) =>
-                                                const Image(
-                                              fit: BoxFit.cover,
-                                              image: AssetImage(
-                                                'assets/cover.jpg',
-                                              ),
-                                            ),
-                                            imageUrl: getImageUrl(
-                                              item['image'].toString(),
-                                            ),
-                                            placeholder: (context, url) =>
-                                                const Image(
-                                              fit: BoxFit.cover,
-                                              image: AssetImage(
-                                                  'assets/cover.jpg'),
-                                            ),
-                                          ),
-                                        ),
-                                        builder: (
-                                          BuildContext context,
-                                          bool isHover,
-                                          Widget? child,
-                                        ) {
-                                          return Card(
-                                            color: isHover
-                                                ? null
-                                                : Colors.transparent,
-                                            elevation: 0,
-                                            margin: EdgeInsets.zero,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                10.0,
-                                              ),
-                                            ),
-                                            clipBehavior: Clip.antiAlias,
-                                            child: Column(
-                                              children: [
-                                                Stack(
+                                SizedBox(
+                                  height: boxSize + 15,
+                                  child: ListView.builder(
+                                    physics: const BouncingScrollPhysics(),
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    itemCount: trendingSongs.length,
+                                    itemBuilder: (context, index) {
+                                      Map item;
+                                      item = trendingSongs[index] as Map;
+                                      final subTitle = item['subtitle'];
+                                      if (item.isEmpty) return const SizedBox();
+                                      return GestureDetector(
+                                        onLongPress: () {
+                                          Feedback.forLongPress(context);
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return InteractiveViewer(
+                                                child: Stack(
                                                   children: [
-                                                    SizedBox.square(
-                                                      dimension: isHover
-                                                          ? boxSize - 25
-                                                          : boxSize - 30,
-                                                      child: child,
+                                                    GestureDetector(
+                                                      onTap: () =>
+                                                          Navigator.pop(
+                                                              context),
                                                     ),
-                                                    if (isHover)
-                                                      Positioned.fill(
-                                                        child: Container(
-                                                          margin:
-                                                              const EdgeInsets
-                                                                  .all(
-                                                            4.0,
-                                                          ),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color:
-                                                                Colors.black54,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        10.0),
-                                                          ),
-                                                          child: Center(
-                                                            child: DecoratedBox(
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color: Colors
-                                                                    .black87,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                  1000.0,
-                                                                ),
-                                                              ),
-                                                              child: const Icon(
-                                                                Icons
-                                                                    .play_arrow_rounded,
-                                                                size: 50.0,
-                                                                color: Colors
-                                                                    .white,
-                                                              ),
+                                                    AlertDialog(
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15.0),
+                                                      ),
+                                                      backgroundColor:
+                                                          Colors.transparent,
+                                                      contentPadding:
+                                                          EdgeInsets.zero,
+                                                      content: Card(
+                                                        elevation: 5,
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      15.0),
+                                                        ),
+                                                        clipBehavior:
+                                                            Clip.antiAlias,
+                                                        child:
+                                                            CachedNetworkImage(
+                                                          fit: BoxFit.cover,
+                                                          errorWidget: (context,
+                                                                  _, __) =>
+                                                              const Image(
+                                                            fit: BoxFit.cover,
+                                                            image: AssetImage(
+                                                              'assets/cover.jpg',
                                                             ),
+                                                          ),
+                                                          imageUrl: getImageUrl(
+                                                            item['image']
+                                                                .toString(),
+                                                          ),
+                                                          placeholder:
+                                                              (context, url) =>
+                                                                  const Image(
+                                                            fit: BoxFit.cover,
+                                                            image: AssetImage(
+                                                                'assets/cover.jpg'),
                                                           ),
                                                         ),
                                                       ),
-                                                    if (item['duration'] !=
-                                                        null)
-                                                      Align(
-                                                        alignment:
-                                                            Alignment.topRight,
-                                                        child: Row(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          children: [
-                                                            if (isHover)
-                                                              LikeButton(
-                                                                mediaItem: null,
-                                                                data: item,
-                                                              ),
-                                                            SongTileTrailingMenu(
-                                                              data: item,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
+                                                    ),
                                                   ],
                                                 ),
-                                                Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 10.0,
-                                                  ),
-                                                  child: Column(
-                                                    children: [
-                                                      Text(
-                                                        item['title']
-                                                                ?.toString()
-                                                                .unescape() ??
-                                                            '',
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        softWrap: false,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                        ),
-                                                      ),
-                                                      if (subTitle != '')
-                                                        Text(
-                                                          subTitle,
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          softWrap: false,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .bodySmall!
-                                                                .color,
-                                                          ),
-                                                        )
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                              );
+                                            },
                                           );
                                         },
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ]);
-              }
-              if (lists[idx] == 'recommend') {
-                return userRecommedSongs.isEmpty
-                    ? const SizedBox()
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(15, 10, 0, 5),
-                              child: Text(
-                                AppLocalizations.of(context)!.recommend,
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.secondary,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: boxSize + 15,
-                              child: ListView.builder(
-                                physics: const BouncingScrollPhysics(),
-                                scrollDirection: Axis.horizontal,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                itemCount: userRecommedSongs.length,
-                                itemBuilder: (context, index) {
-                                  Map item;
-                                  item = userRecommedSongs[index] as Map;
-                                  final subTitle = item['subtitle'];
-                                  if (item.isEmpty) return const SizedBox();
-                                  return GestureDetector(
-                                    onLongPress: () {
-                                      Feedback.forLongPress(context);
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return InteractiveViewer(
-                                            child: Stack(
-                                              children: [
-                                                GestureDetector(
-                                                  onTap: () =>
-                                                      Navigator.pop(context),
-                                                ),
-                                                AlertDialog(
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15.0),
-                                                  ),
-                                                  backgroundColor:
-                                                      Colors.transparent,
-                                                  contentPadding:
-                                                      EdgeInsets.zero,
-                                                  content: Card(
-                                                    elevation: 5,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15.0),
-                                                    ),
-                                                    clipBehavior:
-                                                        Clip.antiAlias,
-                                                    child: CachedNetworkImage(
-                                                      fit: BoxFit.cover,
-                                                      errorWidget:
-                                                          (context, _, __) =>
-                                                              const Image(
-                                                        fit: BoxFit.cover,
-                                                        image: AssetImage(
-                                                          'assets/cover.jpg',
-                                                        ),
-                                                      ),
-                                                      imageUrl: getImageUrl(
-                                                        item['image']
-                                                            .toString(),
-                                                      ),
-                                                      placeholder:
-                                                          (context, url) =>
-                                                              const Image(
-                                                        fit: BoxFit.cover,
-                                                        image: AssetImage(
-                                                            'assets/cover.jpg'),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                        onTap: () async {
+                                          List currentSongList = [item];
+                                          PlayerInvoke.init(
+                                              songsList: currentSongList,
+                                              itemId: item['id'],
+                                              index: 0,
+                                              isOffline: false,
+                                              recommend: true);
+                                          Navigator.pushNamed(
+                                            context,
+                                            '/player',
                                           );
                                         },
-                                      );
-                                    },
-                                    onTap: () async {
-                                      List currentSongList = [];
-                                      currentSongList.add(item);
-                                      PlayerInvoke.init(
-                                          songsList: currentSongList,
-                                          index: 0,
-                                          isOffline: false,
-                                          itemId: item['id'],
-                                          recommend: true);
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/player',
-                                      );
-                                    },
-                                    child: SizedBox(
-                                      width: boxSize - 30,
-                                      child: HoverBox(
-                                        child: Card(
-                                          elevation: 5,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          clipBehavior: Clip.antiAlias,
-                                          child: CachedNetworkImage(
-                                            fit: BoxFit.cover,
-                                            errorWidget: (context, _, __) =>
-                                                const Image(
-                                              fit: BoxFit.cover,
-                                              image: AssetImage(
-                                                'assets/cover.jpg',
-                                              ),
-                                            ),
-                                            imageUrl: getImageUrl(
-                                              item['image'].toString(),
-                                            ),
-                                            placeholder: (context, url) =>
-                                                const Image(
-                                              fit: BoxFit.cover,
-                                              image: AssetImage(
-                                                  'assets/cover.jpg'),
-                                            ),
-                                          ),
-                                        ),
-                                        builder: (
-                                          BuildContext context,
-                                          bool isHover,
-                                          Widget? child,
-                                        ) {
-                                          return Card(
-                                            color: isHover
-                                                ? null
-                                                : Colors.transparent,
-                                            elevation: 0,
-                                            margin: EdgeInsets.zero,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                10.0,
-                                              ),
-                                            ),
-                                            clipBehavior: Clip.antiAlias,
-                                            child: Column(
-                                              children: [
-                                                Stack(
-                                                  children: [
-                                                    SizedBox.square(
-                                                      dimension: isHover
-                                                          ? boxSize - 25
-                                                          : boxSize - 30,
-                                                      child: child,
-                                                    ),
-                                                    if (isHover)
-                                                      Positioned.fill(
-                                                        child: Container(
-                                                          margin:
-                                                              const EdgeInsets
-                                                                  .all(
-                                                            4.0,
-                                                          ),
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color:
-                                                                Colors.black54,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        10.0),
-                                                          ),
-                                                          child: Center(
-                                                            child: DecoratedBox(
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color: Colors
-                                                                    .black87,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                  1000.0,
-                                                                ),
-                                                              ),
-                                                              child: const Icon(
-                                                                Icons
-                                                                    .play_arrow_rounded,
-                                                                size: 50.0,
-                                                                color: Colors
-                                                                    .white,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    if (item['duration'] !=
-                                                        null)
-                                                      Align(
-                                                        alignment:
-                                                            Alignment.topRight,
-                                                        child: Row(
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          children: [
-                                                            if (isHover)
-                                                              LikeButton(
-                                                                mediaItem: null,
-                                                                data: item,
-                                                              ),
-                                                            SongTileTrailingMenu(
-                                                              data: item,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                  ],
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 10.0,
-                                                  ),
-                                                  child: Column(
-                                                    children: [
-                                                      Text(
-                                                        item['title']
-                                                                ?.toString()
-                                                                .unescape() ??
-                                                            '',
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        softWrap: false,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                        ),
-                                                      ),
-                                                      if (subTitle != '')
-                                                        Text(
-                                                          subTitle,
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          softWrap: false,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .bodySmall!
-                                                                .color,
-                                                          ),
-                                                        )
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ]);
-              }
-              return (data[lists[idx]] == null ||
-                      blacklistedHomeSections.contains(
-                        data['modules'][lists[idx]]?['title']
-                            ?.toString()
-                            .toLowerCase(),
-                      ))
-                  ? const SizedBox()
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(15, 10, 0, 5),
-                          child: Text(
-                            data['modules'][lists[idx]]?['title']
-                                    ?.toString()
-                                    .unescape() ??
-                                '',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: boxSize + 15,
-                          child: ListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            itemCount: (data[lists[idx]] as List).length,
-                            itemBuilder: (context, index) {
-                              Map item;
-                              item = data[lists[idx]][index] as Map;
-                              final currentSongList = data[lists[idx]]
-                                  .where((e) => e['type'] == 'song')
-                                  .toList();
-                              final subTitle = getSubTitle(item);
-                              item['subTitle'] = subTitle;
-                              if (item.isEmpty) return const SizedBox();
-                              return GestureDetector(
-                                onLongPress: () {
-                                  Feedback.forLongPress(context);
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return InteractiveViewer(
-                                        child: Stack(
-                                          children: [
-                                            GestureDetector(
-                                              onTap: () =>
-                                                  Navigator.pop(context),
-                                            ),
-                                            AlertDialog(
+                                        child: SizedBox(
+                                          width: boxSize - 30,
+                                          child: HoverBox(
+                                            child: Card(
+                                              elevation: 5,
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
-                                                    BorderRadius.circular(15.0),
+                                                    BorderRadius.circular(10.0),
                                               ),
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              contentPadding: EdgeInsets.zero,
-                                              content: Card(
-                                                elevation: 5,
+                                              clipBehavior: Clip.antiAlias,
+                                              child: CachedNetworkImage(
+                                                fit: BoxFit.cover,
+                                                errorWidget: (context, _, __) =>
+                                                    const Image(
+                                                  fit: BoxFit.cover,
+                                                  image: AssetImage(
+                                                    'assets/cover.jpg',
+                                                  ),
+                                                ),
+                                                imageUrl: getImageUrl(
+                                                  item['image'].toString(),
+                                                ),
+                                                placeholder: (context, url) =>
+                                                    const Image(
+                                                  fit: BoxFit.cover,
+                                                  image: AssetImage(
+                                                      'assets/cover.jpg'),
+                                                ),
+                                              ),
+                                            ),
+                                            builder: (
+                                              BuildContext context,
+                                              bool isHover,
+                                              Widget? child,
+                                            ) {
+                                              return Card(
+                                                color: isHover
+                                                    ? null
+                                                    : Colors.transparent,
+                                                elevation: 0,
+                                                margin: EdgeInsets.zero,
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(
-                                                          15.0),
+                                                    10.0,
+                                                  ),
                                                 ),
                                                 clipBehavior: Clip.antiAlias,
-                                                child: CachedNetworkImage(
-                                                  fit: BoxFit.cover,
-                                                  errorWidget:
-                                                      (context, _, __) =>
-                                                          const Image(
-                                                    fit: BoxFit.cover,
-                                                    image: AssetImage(
-                                                      'assets/cover.jpg',
-                                                    ),
-                                                  ),
-                                                  imageUrl: getImageUrl(
-                                                    item['image'].toString(),
-                                                  ),
-                                                  placeholder: (context, url) =>
-                                                      Image(
-                                                    fit: BoxFit.cover,
-                                                    image: (item['type'] ==
-                                                                'playlist' ||
-                                                            item['type'] ==
-                                                                'album')
-                                                        ? const AssetImage(
-                                                            'assets/album.png',
-                                                          )
-                                                        : item['type'] ==
-                                                                'artist'
-                                                            ? const AssetImage(
-                                                                'assets/artist.png',
-                                                              )
-                                                            : const AssetImage(
-                                                                'assets/cover.jpg',
+                                                child: Column(
+                                                  children: [
+                                                    Stack(
+                                                      children: [
+                                                        SizedBox.square(
+                                                          dimension: isHover
+                                                              ? boxSize - 25
+                                                              : boxSize - 30,
+                                                          child: child,
+                                                        ),
+                                                        if (isHover)
+                                                          Positioned.fill(
+                                                            child: Container(
+                                                              margin:
+                                                                  const EdgeInsets
+                                                                      .all(
+                                                                4.0,
                                                               ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                                onTap: () {
-                                  if (item['type'] == 'song') {
-                                    PlayerInvoke.init(
-                                      songsList: currentSongList as List,
-                                      index: currentSongList.indexWhere(
-                                        (e) => e['id'] == item['id'],
-                                      ),
-                                      isOffline: false,
-                                    );
-                                  }
-                                  item['type'] == 'song'
-                                      ? Navigator.pushNamed(
-                                          context,
-                                          '/player',
-                                        )
-                                      : Navigator.push(
-                                          context,
-                                          PageRouteBuilder(
-                                            opaque: false,
-                                            pageBuilder: (_, __, ___) =>
-                                                SongsListPage(
-                                              listItem: item,
-                                            ),
-                                          ),
-                                        );
-                                },
-                                child: SizedBox(
-                                  width: boxSize - 30,
-                                  child: HoverBox(
-                                    child: Card(
-                                      elevation: 5,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                      ),
-                                      clipBehavior: Clip.antiAlias,
-                                      child: CachedNetworkImage(
-                                        fit: BoxFit.cover,
-                                        errorWidget: (context, _, __) =>
-                                            const Image(
-                                          fit: BoxFit.cover,
-                                          image: AssetImage(
-                                            'assets/cover.jpg',
-                                          ),
-                                        ),
-                                        imageUrl: getImageUrl(
-                                          item['image'].toString(),
-                                        ),
-                                        placeholder: (context, url) => Image(
-                                          fit: BoxFit.cover,
-                                          image: (item['type'] == 'playlist' ||
-                                                  item['type'] == 'album')
-                                              ? const AssetImage(
-                                                  'assets/album.png',
-                                                )
-                                              : item['type'] == 'artist'
-                                                  ? const AssetImage(
-                                                      'assets/artist.png',
-                                                    )
-                                                  : const AssetImage(
-                                                      'assets/cover.jpg',
-                                                    ),
-                                        ),
-                                      ),
-                                    ),
-                                    builder: (
-                                      BuildContext context,
-                                      bool isHover,
-                                      Widget? child,
-                                    ) {
-                                      return Card(
-                                        color:
-                                            isHover ? null : Colors.transparent,
-                                        elevation: 0,
-                                        margin: EdgeInsets.zero,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            10.0,
-                                          ),
-                                        ),
-                                        clipBehavior: Clip.antiAlias,
-                                        child: Column(
-                                          children: [
-                                            Stack(
-                                              children: [
-                                                SizedBox.square(
-                                                  dimension: isHover
-                                                      ? boxSize - 25
-                                                      : boxSize - 30,
-                                                  child: child,
-                                                ),
-                                                if (isHover)
-                                                  Positioned.fill(
-                                                    child: Container(
-                                                      margin:
-                                                          const EdgeInsets.all(
-                                                        4.0,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.black54,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10.0),
-                                                      ),
-                                                      child: Center(
-                                                        child: DecoratedBox(
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color:
-                                                                Colors.black87,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                              1000.0,
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: Colors
+                                                                    .black54,
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10.0),
+                                                              ),
+                                                              child: Center(
+                                                                child:
+                                                                    DecoratedBox(
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    color: Colors
+                                                                        .black87,
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(
+                                                                      1000.0,
+                                                                    ),
+                                                                  ),
+                                                                  child:
+                                                                      const Icon(
+                                                                    Icons
+                                                                        .play_arrow_rounded,
+                                                                    size: 50.0,
+                                                                    color: Colors
+                                                                        .white,
+                                                                  ),
+                                                                ),
+                                                              ),
                                                             ),
                                                           ),
-                                                          child: const Icon(
-                                                            Icons
-                                                                .play_arrow_rounded,
-                                                            size: 50.0,
-                                                            color: Colors.white,
+                                                        if (item['duration'] !=
+                                                            null)
+                                                          Align(
+                                                            alignment: Alignment
+                                                                .topRight,
+                                                            child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                if (isHover)
+                                                                  LikeButton(
+                                                                    mediaItem:
+                                                                        null,
+                                                                    data: item,
+                                                                  ),
+                                                                SongTileTrailingMenu(
+                                                                  data: item,
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                if (item['type'] == 'song' ||
-                                                    item['duration'] != null)
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.topRight,
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        if (isHover)
-                                                          LikeButton(
-                                                            mediaItem: null,
-                                                            data: item,
-                                                          ),
-                                                        SongTileTrailingMenu(
-                                                          data: item,
-                                                        ),
                                                       ],
                                                     ),
-                                                  ),
-                                              ],
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 10.0,
-                                              ),
-                                              child: Column(
-                                                children: [
-                                                  Text(
-                                                    item['title']
-                                                            ?.toString()
-                                                            .unescape() ??
-                                                        '',
-                                                    textAlign: TextAlign.center,
-                                                    softWrap: false,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                  if (subTitle != '')
-                                                    Text(
-                                                      subTitle,
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      softWrap: false,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .bodySmall!
-                                                            .color,
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 10.0,
                                                       ),
-                                                    )
-                                                ],
-                                              ),
-                                            ),
-                                          ],
+                                                      child: Column(
+                                                        children: [
+                                                          Text(
+                                                            item['title']
+                                                                    ?.toString()
+                                                                    .unescape() ??
+                                                                '',
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            softWrap: false,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style:
+                                                                const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                          ),
+                                                          if (subTitle != '')
+                                                            Text(
+                                                              subTitle,
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              softWrap: false,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: TextStyle(
+                                                                fontSize: 11,
+                                                                color: Theme.of(
+                                                                        context)
+                                                                    .textTheme
+                                                                    .bodySmall!
+                                                                    .color,
+                                                              ),
+                                                            )
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
                                         ),
                                       );
                                     },
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    );
-            });
+                              ]);
+                  }
+                  if (lists[idx] == 'recommend') {
+                    return userRecommedSongs.isEmpty
+                        ? const SizedBox()
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(15, 10, 0, 5),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.recommend,
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .secondary,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: boxSize + 15,
+                                  child: ListView.builder(
+                                    physics: const BouncingScrollPhysics(),
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    itemCount: userRecommedSongs.length,
+                                    itemBuilder: (context, index) {
+                                      Map item;
+                                      item = userRecommedSongs[index] as Map;
+                                      final subTitle = item['subtitle'];
+                                      if (item.isEmpty) return const SizedBox();
+                                      return GestureDetector(
+                                        onLongPress: () {
+                                          Feedback.forLongPress(context);
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return InteractiveViewer(
+                                                child: Stack(
+                                                  children: [
+                                                    GestureDetector(
+                                                      onTap: () =>
+                                                          Navigator.pop(
+                                                              context),
+                                                    ),
+                                                    AlertDialog(
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15.0),
+                                                      ),
+                                                      backgroundColor:
+                                                          Colors.transparent,
+                                                      contentPadding:
+                                                          EdgeInsets.zero,
+                                                      content: Card(
+                                                        elevation: 5,
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      15.0),
+                                                        ),
+                                                        clipBehavior:
+                                                            Clip.antiAlias,
+                                                        child:
+                                                            CachedNetworkImage(
+                                                          fit: BoxFit.cover,
+                                                          errorWidget: (context,
+                                                                  _, __) =>
+                                                              const Image(
+                                                            fit: BoxFit.cover,
+                                                            image: AssetImage(
+                                                              'assets/cover.jpg',
+                                                            ),
+                                                          ),
+                                                          imageUrl: getImageUrl(
+                                                            item['image']
+                                                                .toString(),
+                                                          ),
+                                                          placeholder:
+                                                              (context, url) =>
+                                                                  const Image(
+                                                            fit: BoxFit.cover,
+                                                            image: AssetImage(
+                                                                'assets/cover.jpg'),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                        onTap: () async {
+                                          List currentSongList = [item];
+                                          PlayerInvoke.init(
+                                              songsList: currentSongList,
+                                              index: 0,
+                                              isOffline: false,
+                                              itemId: item['id'],
+                                              recommend: true);
+                                          Navigator.pushNamed(
+                                            context,
+                                            '/player',
+                                          );
+                                        },
+                                        child: SizedBox(
+                                          width: boxSize - 30,
+                                          child: HoverBox(
+                                            child: Card(
+                                              elevation: 5,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                              ),
+                                              clipBehavior: Clip.antiAlias,
+                                              child: CachedNetworkImage(
+                                                fit: BoxFit.cover,
+                                                errorWidget: (context, _, __) =>
+                                                    const Image(
+                                                  fit: BoxFit.cover,
+                                                  image: AssetImage(
+                                                    'assets/cover.jpg',
+                                                  ),
+                                                ),
+                                                imageUrl: getImageUrl(
+                                                  item['image'].toString(),
+                                                ),
+                                                placeholder: (context, url) =>
+                                                    const Image(
+                                                  fit: BoxFit.cover,
+                                                  image: AssetImage(
+                                                      'assets/cover.jpg'),
+                                                ),
+                                              ),
+                                            ),
+                                            builder: (
+                                              BuildContext context,
+                                              bool isHover,
+                                              Widget? child,
+                                            ) {
+                                              return Card(
+                                                color: isHover
+                                                    ? null
+                                                    : Colors.transparent,
+                                                elevation: 0,
+                                                margin: EdgeInsets.zero,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                    10.0,
+                                                  ),
+                                                ),
+                                                clipBehavior: Clip.antiAlias,
+                                                child: Column(
+                                                  children: [
+                                                    Stack(
+                                                      children: [
+                                                        SizedBox.square(
+                                                          dimension: isHover
+                                                              ? boxSize - 25
+                                                              : boxSize - 30,
+                                                          child: child,
+                                                        ),
+                                                        if (isHover)
+                                                          Positioned.fill(
+                                                            child: Container(
+                                                              margin:
+                                                                  const EdgeInsets
+                                                                      .all(
+                                                                4.0,
+                                                              ),
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: Colors
+                                                                    .black54,
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10.0),
+                                                              ),
+                                                              child: Center(
+                                                                child:
+                                                                    DecoratedBox(
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    color: Colors
+                                                                        .black87,
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(
+                                                                      1000.0,
+                                                                    ),
+                                                                  ),
+                                                                  child:
+                                                                      const Icon(
+                                                                    Icons
+                                                                        .play_arrow_rounded,
+                                                                    size: 50.0,
+                                                                    color: Colors
+                                                                        .white,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        if (item['duration'] !=
+                                                            null)
+                                                          Align(
+                                                            alignment: Alignment
+                                                                .topRight,
+                                                            child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                if (isHover)
+                                                                  LikeButton(
+                                                                    mediaItem:
+                                                                        null,
+                                                                    data: item,
+                                                                  ),
+                                                                SongTileTrailingMenu(
+                                                                  data: item,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                    Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 10.0,
+                                                      ),
+                                                      child: Column(
+                                                        children: [
+                                                          Text(
+                                                            item['title']
+                                                                    ?.toString()
+                                                                    .unescape() ??
+                                                                '',
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            softWrap: false,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style:
+                                                                const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                          ),
+                                                          if (subTitle != '')
+                                                            Text(
+                                                              subTitle,
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              softWrap: false,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: TextStyle(
+                                                                fontSize: 11,
+                                                                color: Theme.of(
+                                                                        context)
+                                                                    .textTheme
+                                                                    .bodySmall!
+                                                                    .color,
+                                                              ),
+                                                            )
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ]);
+                  }
+                  return (data[lists[idx]] == null ||
+                          blacklistedHomeSections.contains(
+                            data['modules'][lists[idx]]?['title']
+                                ?.toString()
+                                .toLowerCase(),
+                          ))
+                      ? const SizedBox()
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(15, 10, 0, 5),
+                              child: Text(
+                                data['modules'][lists[idx]]?['title']
+                                        ?.toString()
+                                        .unescape() ??
+                                    '',
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: boxSize + 15,
+                              child: ListView.builder(
+                                physics: const BouncingScrollPhysics(),
+                                scrollDirection: Axis.horizontal,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                itemCount: (data[lists[idx]] as List).length,
+                                itemBuilder: (context, index) {
+                                  Map item;
+                                  item = data[lists[idx]][index] as Map;
+                                  final currentSongList = data[lists[idx]]
+                                      .where((e) => e['type'] == 'song')
+                                      .toList();
+                                  final subTitle = getSubTitle(item);
+                                  item['subTitle'] = subTitle;
+                                  if (item.isEmpty) return const SizedBox();
+                                  return GestureDetector(
+                                    onLongPress: () {
+                                      Feedback.forLongPress(context);
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return InteractiveViewer(
+                                            child: Stack(
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: () =>
+                                                      Navigator.pop(context),
+                                                ),
+                                                AlertDialog(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15.0),
+                                                  ),
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  contentPadding:
+                                                      EdgeInsets.zero,
+                                                  content: Card(
+                                                    elevation: 5,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              15.0),
+                                                    ),
+                                                    clipBehavior:
+                                                        Clip.antiAlias,
+                                                    child: CachedNetworkImage(
+                                                      fit: BoxFit.cover,
+                                                      errorWidget:
+                                                          (context, _, __) =>
+                                                              const Image(
+                                                        fit: BoxFit.cover,
+                                                        image: AssetImage(
+                                                          'assets/cover.jpg',
+                                                        ),
+                                                      ),
+                                                      imageUrl: getImageUrl(
+                                                        item['image']
+                                                            .toString(),
+                                                      ),
+                                                      placeholder:
+                                                          (context, url) =>
+                                                              Image(
+                                                        fit: BoxFit.cover,
+                                                        image: (item['type'] ==
+                                                                    'playlist' ||
+                                                                item['type'] ==
+                                                                    'album')
+                                                            ? const AssetImage(
+                                                                'assets/album.png',
+                                                              )
+                                                            : item['type'] ==
+                                                                    'artist'
+                                                                ? const AssetImage(
+                                                                    'assets/artist.png',
+                                                                  )
+                                                                : const AssetImage(
+                                                                    'assets/cover.jpg',
+                                                                  ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                    onTap: () {
+                                      if (item['type'] == 'song') {
+                                        PlayerInvoke.init(
+                                          songsList: currentSongList as List,
+                                          index: currentSongList.indexWhere(
+                                            (e) => e['id'] == item['id'],
+                                          ),
+                                          isOffline: false,
+                                        );
+                                      }
+                                      item['type'] == 'song'
+                                          ? Navigator.pushNamed(
+                                              context,
+                                              '/player',
+                                            )
+                                          : Navigator.push(
+                                              context,
+                                              PageRouteBuilder(
+                                                opaque: false,
+                                                pageBuilder: (_, __, ___) =>
+                                                    SongsListPage(
+                                                  listItem: item,
+                                                ),
+                                              ),
+                                            );
+                                    },
+                                    child: SizedBox(
+                                      width: boxSize - 30,
+                                      child: HoverBox(
+                                        child: Card(
+                                          elevation: 5,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
+                                          ),
+                                          clipBehavior: Clip.antiAlias,
+                                          child: CachedNetworkImage(
+                                            fit: BoxFit.cover,
+                                            errorWidget: (context, _, __) =>
+                                                const Image(
+                                              fit: BoxFit.cover,
+                                              image: AssetImage(
+                                                'assets/cover.jpg',
+                                              ),
+                                            ),
+                                            imageUrl: getImageUrl(
+                                              item['image'].toString(),
+                                            ),
+                                            placeholder: (context, url) =>
+                                                Image(
+                                              fit: BoxFit.cover,
+                                              image: (item['type'] ==
+                                                          'playlist' ||
+                                                      item['type'] == 'album')
+                                                  ? const AssetImage(
+                                                      'assets/album.png',
+                                                    )
+                                                  : item['type'] == 'artist'
+                                                      ? const AssetImage(
+                                                          'assets/artist.png',
+                                                        )
+                                                      : const AssetImage(
+                                                          'assets/cover.jpg',
+                                                        ),
+                                            ),
+                                          ),
+                                        ),
+                                        builder: (
+                                          BuildContext context,
+                                          bool isHover,
+                                          Widget? child,
+                                        ) {
+                                          return Card(
+                                            color: isHover
+                                                ? null
+                                                : Colors.transparent,
+                                            elevation: 0,
+                                            margin: EdgeInsets.zero,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                10.0,
+                                              ),
+                                            ),
+                                            clipBehavior: Clip.antiAlias,
+                                            child: Column(
+                                              children: [
+                                                Stack(
+                                                  children: [
+                                                    SizedBox.square(
+                                                      dimension: isHover
+                                                          ? boxSize - 25
+                                                          : boxSize - 30,
+                                                      child: child,
+                                                    ),
+                                                    if (isHover)
+                                                      Positioned.fill(
+                                                        child: Container(
+                                                          margin:
+                                                              const EdgeInsets
+                                                                  .all(
+                                                            4.0,
+                                                          ),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color:
+                                                                Colors.black54,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10.0),
+                                                          ),
+                                                          child: Center(
+                                                            child: DecoratedBox(
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: Colors
+                                                                    .black87,
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                  1000.0,
+                                                                ),
+                                                              ),
+                                                              child: const Icon(
+                                                                Icons
+                                                                    .play_arrow_rounded,
+                                                                size: 50.0,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    if (item['type'] ==
+                                                            'song' ||
+                                                        item['duration'] !=
+                                                            null)
+                                                      Align(
+                                                        alignment:
+                                                            Alignment.topRight,
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            if (isHover)
+                                                              LikeButton(
+                                                                mediaItem: null,
+                                                                data: item,
+                                                              ),
+                                                            SongTileTrailingMenu(
+                                                              data: item,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    horizontal: 10.0,
+                                                  ),
+                                                  child: Column(
+                                                    children: [
+                                                      Text(
+                                                        item['title']
+                                                                ?.toString()
+                                                                .unescape() ??
+                                                            '',
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        softWrap: false,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                      if (subTitle != '')
+                                                        Text(
+                                                          subTitle,
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          softWrap: false,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style: TextStyle(
+                                                            fontSize: 11,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .bodySmall!
+                                                                .color,
+                                                          ),
+                                                        )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                }),
+            onRefresh: getHomePageData);
   }
 
   @override

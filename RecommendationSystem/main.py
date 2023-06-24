@@ -57,11 +57,21 @@ class recommender_system():
         item_similar_songIds = ir.get_similar_items(song_id)
         return self.get_song_info_by_list_id(item_similar_songIds)
     
+    def get_item_similarity_by_keywork(self, keywork):
+        ir = Recommenders.item_similarity_recommender_py()
+        ir.create(self.song_stat_df, 'userId', 'songId')
+        item_similar_songIds = ir.get_similar_items_by_list(keywork)
+        return self.get_song_info_by_list_id(item_similar_songIds)
+    
     def get_user_similarity(self, user_id):
         ir = Recommenders.item_similarity_recommender_py()
         ir.create(self.song_stat_df, 'userId', 'songId')
         user_similar_songIds = ir.recommend(user_id)
         return self.get_song_info_by_list_id(user_similar_songIds)
+    
+    def get_random_artist(self):
+        artists = self.songs_df.sample(10)['subtitle'].to_numpy().tolist()
+        return artists
     
     def get_song_info_by_list_id(self, list_id):
         columns = ['320kbps','album','album_id','artist','duration','genre','has_lyrics','songId','image','language','perma_url','release_date','subtitle','title','url','year']

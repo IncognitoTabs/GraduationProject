@@ -174,3 +174,23 @@ class item_similarity_recommender_py():
             if id not in list_id:
                 list_id.append(id)
         return list_id
+    
+    def get_similar_items_by_list(self, keywork):
+        work = ' '
+        work = work.join(keywork)
+        tfidf = TfidfVectorizer()
+        all_tags = self.train_data['all_tags']
+        all_tags[len(all_tags)] = work.lower()
+        data = tfidf.fit_transform(all_tags).toarray()
+        similarity = cosine_similarity(data)
+        distances = sorted(list(enumerate(similarity[len(all_tags)-1])),reverse=True,key = lambda x: x[1])
+        list_id = []
+        for i in distances:
+            if i[1] >= 1:
+                continue
+            if len(list_id) > 20:
+                break
+            id = self.train_data.iloc[i[0]].songId
+            if id not in list_id:
+                list_id.append(id)
+        return list_id

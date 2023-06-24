@@ -1,6 +1,10 @@
 {
   "aboard": "Aboard",
   "@aboard": {},
+  "artistQue": "Hãy chọn những ca sĩ mà bạn muốn nghe nhạc của họ",
+  "@artistQue": {},
+  "noArtistSelected": "Chưa ca sĩ nào được chọn",
+  "@noArtistSelected": {},
   "cantFind": "Không tìm thấy kết quả? ",
   "@cantFind": {},
   "compactNotificationButtons": "Các nút trên thanh thông báo",

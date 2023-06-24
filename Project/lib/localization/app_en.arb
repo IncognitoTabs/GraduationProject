@@ -1,6 +1,10 @@
 {
   "aboard": "Aboard",
   "@aboard": {},
+  "artistQue": "Please select the artists that you want to listen their song",
+  "@artistQue": {},
+  "noArtistSelected": "No Artist selected. Select at least one to see songs on Home Screen",
+  "@noArtistSelected": {},
   "about": "About",
   "@about": {},
   "aboutLine1": "This is my final year project and can be found on",

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 // ignore: implementation_imports
 import 'package:hive/hive.dart';
 
-
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:incognito_music/APIs/api.dart';
 
 import '../../CustomWidgets/gradient_containers.dart';
 import '../../CustomWidgets/snack_bar.dart';
@@ -19,16 +19,20 @@ class PrefScreen extends StatefulWidget {
 }
 
 class _PrefScreenState extends State<PrefScreen> {
-
-  List<String> languages = [
-    'English',
-    'Vietnamese'
-  ];
+  List<String> languages = ['English', 'Vietnamese'];
+  List randomArtists = [];
+  List<dynamic> selectedArtists = [];
   List<bool> isSelected = [true, false];
   List preferredLanguage = Hive.box('settings')
       .get('preferredLanguage', defaultValue: ['English'])?.toList() as List;
   String region =
       Hive.box('settings').get('region', defaultValue: 'Vietnam') as String;
+
+  @override
+  void initState() async {
+    super.initState();
+    randomArtists = await MusicAPI().getRandomArtists();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +144,194 @@ class _PrefScreenState extends State<PrefScreen> {
                             Column(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
+                                ListTile(
+                                  title: Text(
+                                    AppLocalizations.of(context)!.artistQue,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  trailing: Container(
+                                    padding: const EdgeInsets.only(
+                                      top: 5,
+                                      bottom: 5,
+                                      left: 10,
+                                      right: 10,
+                                    ),
+                                    height: 57.0,
+                                    width: 150,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      color: Colors.grey[900],
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black26,
+                                          blurRadius: 5.0,
+                                          offset: Offset(0.0, 3.0),
+                                        )
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        selectedArtists.isEmpty
+                                            ? 'None'
+                                            : selectedArtists.join(', '),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.end,
+                                      ),
+                                    ),
+                                  ),
+                                  dense: true,
+                                  onTap: () {
+                                    showModalBottomSheet(
+                                      isDismissible: true,
+                                      backgroundColor: Colors.transparent,
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        final List <String> checked =
+                                            List.from(selectedArtists);
+                                        return StatefulBuilder(
+                                          builder: (
+                                            BuildContext context,
+                                            StateSetter setStt,
+                                          ) {
+                                            return BottomGradientContainer(
+                                              borderRadius:
+                                                  BorderRadius.circular(20.0),
+                                              child: Column(
+                                                children: [
+                                                  Expanded(
+                                                    child: ListView.builder(
+                                                      physics:
+                                                          const BouncingScrollPhysics(),
+                                                      shrinkWrap: true,
+                                                      padding: const EdgeInsets
+                                                          .fromLTRB(
+                                                        0,
+                                                        10,
+                                                        0,
+                                                        10,
+                                                      ),
+                                                      itemCount:
+                                                          randomArtists.length,
+                                                      itemBuilder:
+                                                          (context, idx) {
+                                                        return CheckboxListTile(
+                                                          activeColor: Theme.of(
+                                                            context,
+                                                          )
+                                                              .colorScheme
+                                                              .secondary,
+                                                          value:
+                                                              checked.contains(
+                                                            randomArtists[idx],
+                                                          ),
+                                                          title: Text(
+                                                            randomArtists[idx],
+                                                          ),
+                                                          onChanged:
+                                                              (bool? value) {
+                                                            value!
+                                                                ? checked.add(
+                                                                    randomArtists[
+                                                                        idx],
+                                                                  )
+                                                                : checked
+                                                                    .remove(
+                                                                    randomArtists[
+                                                                        idx],
+                                                                  );
+                                                            setStt(() {});
+                                                          },
+                                                        );
+                                                      },
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.end,
+                                                    children: [
+                                                      TextButton(
+                                                        style: TextButton
+                                                            .styleFrom(
+                                                          foregroundColor:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .secondary,
+                                                        ),
+                                                        onPressed: () {
+                                                          Navigator.pop(
+                                                            context,
+                                                          );
+                                                        },
+                                                        child: Text(
+                                                          AppLocalizations.of(
+                                                            context,
+                                                          )!
+                                                              .cancel,
+                                                        ),
+                                                      ),
+                                                      TextButton(
+                                                        style: TextButton
+                                                            .styleFrom(
+                                                          foregroundColor:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .secondary,
+                                                        ),
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            selectedArtists =
+                                                                checked;
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                            Hive.box('settings')
+                                                                .put(
+                                                              'selectedArtists',
+                                                              checked,
+                                                            );
+                                                          });
+                                                          if (selectedArtists
+                                                              .isEmpty) {
+                                                            ShowSnackBar()
+                                                                .showSnackBar(
+                                                              context,
+                                                              AppLocalizations
+                                                                      .of(
+                                                                context,
+                                                              )!
+                                                                  .noArtistSelected,
+                                                            );
+                                                          }
+                                                        },
+                                                        child: Text(
+                                                          AppLocalizations.of(
+                                                            context,
+                                                          )!
+                                                              .ok,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 30.0,
+                                ),
                                 ListTile(
                                   title: Text(
                                     AppLocalizations.of(context)!.langQue,
