@@ -23,15 +23,22 @@ class firebase_service():
         self.rs.data_preprocessing(songs=self.songs, stats= self.stats)  
 
     def get_trending_songs(self):
-        top_trending = self.rs.get_popularity().to_numpy().tolist()
+        top_trending = self.rs.get_popularity()
         return top_trending
+    
+    def get_random_artist(self):
+        return self.rs.get_random_artist()
         
     def get_user_similar_songs(self, userId):
-        top_trending = self.rs.get_user_similarity(userId).to_numpy().tolist()
+        top_trending = self.rs.get_user_similarity(userId)
         return top_trending
     
     def get_item_similar_songs(self, songId):
-        top_trending = self.rs.get_item_similarity(songId).to_numpy().tolist()
+        top_trending = self.rs.get_item_similarity(songId)
+        return top_trending
+    
+    def get_item_similar_songs_by_keywork(self, keywork):
+        top_trending = self.rs.get_item_similarity_by_keywork(keywork)
         return top_trending
     
     def random_update_stats(self):

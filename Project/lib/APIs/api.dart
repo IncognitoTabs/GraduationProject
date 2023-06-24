@@ -10,10 +10,11 @@ import '../Helpers/format.dart';
 
 class MusicAPI {
   List preferredLanguages = Hive.box('settings')
-      .get('preferredLanguage', defaultValue: ['English']) as List;
+      .get('preferredLanguage', defaultValue: ['Vietnamese']) as List;
   Map<String, String> headers = {};
   String baseUrl = 'www.jiosaavn.com';
   String apiStr = '/api.php?_format=json&_marker=0&api_version=4&ctx=web6dot0';
+  String recSysBaseUrl = 'incognito-music.azurewebsites.net';
   Box settingsBox = Hive.box('settings');
   Map<String, String> endpoints = {
     'homeData': '__call=webapi.getLaunchData',
@@ -31,10 +32,122 @@ class MusicAPI {
     'artistResults': '__call=search.getArtistResults',
     'playlistResults': '__call=search.getPlaylistResults',
     'getReco': '__call=reco.getreco',
-    'getAlbumReco': '__call=reco.getAlbumReco', // still not used
-    'artistOtherTopSongs':
-        '__call=search.artistOtherTopSongs', // still not used
   };
+
+  Future<List<dynamic>> getTrendingSongs() async {
+    List<dynamic> data = [];
+    preferredLanguages =
+        preferredLanguages.map((lang) => lang.toLowerCase()).toList();
+    final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
+    headers = {'cookie': languageHeader, 'Accept': '*/*'};
+    Uri url = Uri.https(recSysBaseUrl, '/get-trending-songs');
+    Response res =
+        await get(url, headers: headers).onError((error, stackTrace) {
+      return Response(
+        {
+          'status': 'failure',
+          'error': error.toString(),
+        }.toString(),
+        404,
+      );
+    });
+    if (res.statusCode == 200) {
+      data = json.decode(res.body);
+    }
+    return data;
+  }
+
+  Future<List<dynamic>> getRandomArtists() async {
+    List<dynamic> data = [];
+    preferredLanguages =
+        preferredLanguages.map((lang) => lang.toLowerCase()).toList();
+    final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
+    headers = {'cookie': languageHeader, 'Accept': '*/*'};
+    Uri url = Uri.https(recSysBaseUrl, '/get_random_artist');
+    Response res =
+        await get(url, headers: headers).onError((error, stackTrace) {
+      return Response(
+        {
+          'status': 'failure',
+          'error': error.toString(),
+        }.toString(),
+        404,
+      );
+    });
+    if (res.statusCode == 200) {
+      data = json.decode(res.body);
+    }
+    return data;
+  }
+
+  Future<List<dynamic>> getRecommendByHobbies(List<dynamic> keywork) async {
+    List<dynamic> data = [];
+    preferredLanguages =
+        preferredLanguages.map((lang) => lang.toLowerCase()).toList();
+    final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
+    headers = {'cookie': languageHeader, 'Accept': '*/*'};
+    Uri url = Uri.https(recSysBaseUrl, '/get_recommend_by_hobbies');
+    Response res =
+        await post(url, headers: headers, body: keywork).onError((error, stackTrace) {
+      return Response(
+        {
+          'status': 'failure',
+          'error': error.toString(),
+        }.toString(),
+        404,
+      );
+    });
+    if (res.statusCode == 200) {
+      data = json.decode(res.body);
+    }
+    return data;
+  }
+
+  Future<List<dynamic>> getItemSimilarSongs(String? songId) async {
+    List<dynamic> data = [];
+    preferredLanguages =
+        preferredLanguages.map((lang) => lang.toLowerCase()).toList();
+    final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
+    headers = {'cookie': languageHeader, 'Accept': '*/*'};
+    Uri url = Uri.https(recSysBaseUrl, '/get_item_similar_songs/$songId');
+    Response res =
+        await get(url, headers: headers).onError((error, stackTrace) {
+      return Response(
+        {
+          'status': 'failure',
+          'error': error.toString(),
+        }.toString(),
+        404,
+      );
+    });
+    if (res.statusCode == 200) {
+      data = json.decode(res.body);
+    }
+    return data;
+  }
+
+  Future<List<dynamic>> getUserSimilarSongs(String userId) async {
+    List<dynamic> data = [];
+    preferredLanguages =
+        preferredLanguages.map((lang) => lang.toLowerCase()).toList();
+    final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
+    headers = {'cookie': languageHeader, 'Accept': '*/*'};
+    Uri url = Uri.https(recSysBaseUrl, '/get_user_similar_songs/$userId');
+    Response res =
+        await get(url, headers: headers).onError((error, stackTrace) {
+      return Response(
+        {
+          'status': 'failure',
+          'error': error.toString(),
+        }.toString(),
+        404,
+      );
+    });
+    if (res.statusCode == 200) {
+      data = json.decode(res.body);
+    }
+    return data;
+  }
 
   Future<Response> getResponse(
     String params, {

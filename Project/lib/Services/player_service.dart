@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:incognito_music/APIs/api.dart';
 import 'package:incognito_music/Helpers/auto_update_database.dart';
 import 'package:logging/logging.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -21,6 +22,7 @@ class PlayerInvoke {
     required int index,
     bool fromMiniplayer = false,
     bool? isOffline,
+    String? itemId,
     bool recommend = true,
     bool fromDownloads = false,
     bool shuffle = false,
@@ -29,6 +31,10 @@ class PlayerInvoke {
     final int globalIndex = index < 0 ? 0 : index;
     bool? offline = isOffline;
     final List finalList = songsList.toList();
+    if (itemId != null) {
+      List recommendList = await MusicAPI().getItemSimilarSongs(itemId);
+      finalList.addAll(recommendList);
+    }
     if (shuffle) finalList.shuffle();
     if (offline == null) {
       if (audioHandler.mediaItem.value?.extras!['url'].startsWith('http')
@@ -127,20 +133,20 @@ class PlayerInvoke {
 
   static Future<void> refreshYtLink(Map playItem) async {
     final int expiredAt = int.parse((playItem['expire_at'] ?? '0').toString());
+    String id = playItem['id'] ?? playItem['songId'];
     if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 > expiredAt) {
       Logger.root.info(
         'before service | youtube link expired for ${playItem["title"]}',
       );
-      if (Hive.box('ytlinkcache').containsKey(playItem['id'])) {
-        final Map cache =
-            await Hive.box('ytlinkcache').get(playItem['id']) as Map;
+      if (Hive.box('ytlinkcache').containsKey(id)) {
+        final Map cache = await Hive.box('ytlinkcache').get(id) as Map;
         final int expiredAt = int.parse((cache['expire_at'] ?? '0').toString());
         // final String wasCacheEnabled = cache['cached'].toString();
         if ((DateTime.now().millisecondsSinceEpoch ~/ 1000) + 350 > expiredAt) {
           Logger.root
               .info('youtube link expired in cache for ${playItem["title"]}');
-          final newData =
-              await YouTubeServices().refreshLink(playItem['id'].toString());
+
+          final newData = await YouTubeServices().refreshLink(id.toString());
           Logger.root.info(
             'before service | received new link for ${playItem["title"]}',
           );
@@ -156,8 +162,7 @@ class PlayerInvoke {
           playItem['expire_at'] = cache['expire_at'];
         }
       } else {
-        final newData =
-            await YouTubeServices().refreshLink(playItem['id'].toString());
+        final newData = await YouTubeServices().refreshLink(id.toString());
         Logger.root.info(
           'before service | received new link for ${playItem["title"]}',
         );

@@ -1,5 +1,7 @@
 import numpy as np
 import pandas
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 #Class for Popularity based Recommender System model
 class popularity_recommender_py():
@@ -23,8 +25,7 @@ class popularity_recommender_py():
         #Get the top 20 trending
         self.popularity_recommendations = train_data_sort.head(20)
 
-    #Use the popularity based recommender system model to
-    #make recommendations
+    #Use the popularity based recommender system model to make recommendations
     def recommend(self):    
         top_trending = self.popularity_recommendations[self.item_id]
         return top_trending.to_numpy().tolist()
@@ -63,23 +64,16 @@ class item_similarity_recommender_py():
     #Construct cooccurence matrix
     def construct_cooccurence_matrix(self, user_songs, all_songs):
             
-        ####################################
         #Get users for all songs in user_songs.
-        ####################################
         user_songs_users = []        
         for i in range(0, len(user_songs)):
             user_songs_users.append(self.get_item_users(user_songs[i]))
             
-        ###############################################
         #Initialize the item cooccurence matrix of size 
         #len(user_songs) X len(songs)
-        ###############################################
         cooccurence_matrix = np.matrix(np.zeros(shape=(len(user_songs), len(all_songs))), float)
            
-        #############################################################
-        #Calculate similarity between user songs and all unique songs
-        #in the training data
-        #############################################################
+        #Calculate similarity between user songs and all unique songs in the training data
         for i in range(0,len(all_songs)):
             #Calculate unique listeners (users) of song (item) i
             songs_i_data = self.train_data[self.train_data[self.item_id] == all_songs[i]]
@@ -143,59 +137,60 @@ class item_similarity_recommender_py():
         self.user_id = user_id
         self.item_id = item_id
 
-    #Use the item similarity based recommender system model to
-    #make recommendations
+    #Use the item similarity based recommender system model to make recommendations
     def recommend(self, user):
         
-        ########################################
-        #A. Get all unique songs for this user
-        ########################################
+        #Get all unique songs for this user
         user_songs = self.get_user_items(user)    
             
         print("No. of unique songs for the user: %d" % len(user_songs))
         
-        ######################################################
-        #B. Get all unique items (songs) in the training data
-        ######################################################
+        #Get all unique items (songs) in the training data
         all_songs = self.get_all_items_train_data()
         print("no. of unique songs in the training set: %d" % len(all_songs))
          
-        ###############################################
-        #C. Construct item cooccurence matrix of size 
+        #Construct item cooccurence matrix of size 
         #len(user_songs) X len(songs)
-        ###############################################
         cooccurence_matrix = self.construct_cooccurence_matrix(user_songs, all_songs)
         
-        #######################################################
-        #D. Use the cooccurence matrix to make recommendations
-        #######################################################
+        #Use the cooccurence matrix to make recommendations
         df_recommendations = self.generate_top_recommendations(user, cooccurence_matrix, all_songs, user_songs)
                 
         return df_recommendations.to_numpy().tolist()
     
-    #Get similar items to given items
-    def get_similar_items(self, item_list):
-        
-        user_songs = item_list
-        # print(self.train_data.query('songId == {item_list}').to_numpy().tolist())
-        
-        ######################################################
-        #B. Get all unique items (songs) in the training data
-        ######################################################
-        all_songs = self.get_all_items_train_data()
-        
-        print("no. of unique songs in the training set: %d" % len(all_songs))
-         
-        ###############################################
-        #C. Construct item cooccurence matrix of size 
-        #len(user_songs) X len(songs)
-        ###############################################
-        cooccurence_matrix = self.construct_cooccurence_matrix(user_songs, all_songs)
-        
-        #######################################################
-        #D. Use the cooccurence matrix to make recommendations
-        #######################################################
-        user = ""
-        df_recommendations = self.generate_top_recommendations(user, cooccurence_matrix, all_songs, user_songs)
-         
-        return df_recommendations.to_numpy().tolist()
+    #Get similar items to given item
+    def get_similar_items(self, item_id):
+        tfidf = TfidfVectorizer()
+        all_tags = self.train_data['all_tags']
+        data = tfidf.fit_transform(all_tags).toarray()
+        similarity = cosine_similarity(data)
+        index = self.train_data[self.train_data['songId'] == item_id].index[0]
+        distances = sorted(list(enumerate(similarity[index])),reverse=True,key = lambda x: x[1])
+        list_id = []
+        for i in distances:
+            if len(list_id) > 20:
+                break
+            id = self.train_data.iloc[i[0]].songId
+            if id not in list_id:
+                list_id.append(id)
+        return list_id
+    
+    def get_similar_items_by_list(self, keywork):
+        work = ' '
+        work = work.join(keywork)
+        tfidf = TfidfVectorizer()
+        all_tags = self.train_data['all_tags']
+        all_tags[len(all_tags)] = work.lower()
+        data = tfidf.fit_transform(all_tags).toarray()
+        similarity = cosine_similarity(data)
+        distances = sorted(list(enumerate(similarity[len(all_tags)-1])),reverse=True,key = lambda x: x[1])
+        list_id = []
+        for i in distances:
+            if i[1] >= 1:
+                continue
+            if len(list_id) > 20:
+                break
+            id = self.train_data.iloc[i[0]].songId
+            if id not in list_id:
+                list_id.append(id)
+        return list_id

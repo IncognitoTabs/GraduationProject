@@ -38,6 +38,13 @@ class FireBase {
     }
   }
 
+  Future<bool> isNewUser(String userId) async {
+    final userSnapshot =
+        await ref.child('stats').orderByChild('userId').equalTo(userId).get();
+    bool isUserExists = await rootFirebaseIsExists(userSnapshot);
+    return !isUserExists;
+  }
+
   Future<void> addIfNotExist(Map song) async {
     await ref
         .child('songs')
