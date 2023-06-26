@@ -80,15 +80,16 @@ class MusicAPI {
     return data;
   }
 
-  Future<List<dynamic>> getRecommendByHobbies(List<dynamic> keywork) async {
+  Future<List<dynamic>> getRecommendByHobbies(String keywork) async {
     List<dynamic> data = [];
+    Map bodylist = {"keywork":keywork};
     preferredLanguages =
         preferredLanguages.map((lang) => lang.toLowerCase()).toList();
     final String languageHeader = 'L=${preferredLanguages.join('%2C')}';
-    headers = {'cookie': languageHeader, 'Accept': '*/*'};
+    headers = {'cookie': languageHeader, 'Content-type': 'application/json', 'Accept': 'application/json'};
     Uri url = Uri.https(recSysBaseUrl, '/get_recommend_by_hobbies');
     Response res =
-        await post(url, headers: headers, body: keywork).onError((error, stackTrace) {
+        await post(url, headers: headers, body: jsonEncode(bodylist)).onError((error, stackTrace) {
       return Response(
         {
           'status': 'failure',

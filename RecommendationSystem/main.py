@@ -14,16 +14,16 @@ class recommender_system():
         self.songs_df = pd.DataFrame(songs).rename(columns={'id' : 'songId'}).dropna().drop_duplicates(['songId', 'title'])
         self.stats_df = pd.DataFrame(stats)
         self.song_stat_df = pd.merge(self.stats_df, self.songs_df, on='songId', how='left')
-        self.song_stat_df.drop(columns=['320kbps','album_id' ,'duration','has_lyrics' , 'image','perma_url', 'url', 'release_date', 'genre'],inplace=True)
+        self.song_stat_df.drop(columns=['320kbps','album_id' ,'duration','has_lyrics' , 'image','perma_url', 'url', 'release_date', 'title'],inplace=True)
         # to convert string into list of strings 
-        self.song_stat_df['title'] = self.song_stat_df['title'].apply(self.spliting)
+        self.song_stat_df['genre'] = self.song_stat_df['genre'].apply(self.spliting)
         self.song_stat_df['artist'] = self.song_stat_df['artist'].apply(self.spliting)
         self.song_stat_df['album'] = self.song_stat_df['album'].apply(self.spliting)
         self.song_stat_df['subtitle'] = self.song_stat_df['subtitle'].apply(self.spliting)
         self.song_stat_df['year'] = self.song_stat_df['year'].apply(self.spliting)
 
-        self.song_stat_df['all_tags'] = self.song_stat_df['title'] + self.song_stat_df['artist'] + self.song_stat_df['album'] + self.song_stat_df['subtitle']+ self.song_stat_df['year']
-        self.song_stat_df.drop(columns=['title','artist' ,'album','language' , 'subtitle','year'],inplace=True)
+        self.song_stat_df['all_tags'] = self.song_stat_df['artist'] + self.song_stat_df['genre'] + self.song_stat_df['album'] + self.song_stat_df['subtitle']+ self.song_stat_df['year']
+        self.song_stat_df.drop(columns=['genre','artist' ,'album','language' , 'subtitle','year'],inplace=True)
 
         self.song_stat_df['all_tags']=self.song_stat_df['all_tags'].apply(self.convert_lower)
         self.song_stat_df['all_tags'] = self.song_stat_df['all_tags'].apply(self.steming)

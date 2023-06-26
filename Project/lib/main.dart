@@ -9,6 +9,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:incognito_music/APIs/api.dart';
 import 'package:incognito_music/Helpers/config.dart';
 import 'package:incognito_music/Helpers/countrycodes.dart';
 import 'package:incognito_music/Helpers/handle_native.dart';
@@ -45,6 +46,8 @@ Future<void> main() async {
   await openHiveBox('Favorite Songs');
   await openHiveBox('cache', limit: true);
   await openHiveBox('ytlinkcache', limit: true);
+  List randomArtists = await MusicAPI().getRandomArtists();
+  Hive.box('cache').put('randomArtists', randomArtists);
   if (Platform.isAndroid) {
     setOptimalDisplayMode();
   }

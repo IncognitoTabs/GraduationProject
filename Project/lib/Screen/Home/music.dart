@@ -45,8 +45,7 @@ class MusicHomePage extends StatefulWidget {
 
 class _MusicHomePageState extends State<MusicHomePage>
     with AutomaticKeepAliveClientMixin<MusicHomePage> {
-  List selectedArtists =
-      Hive.box('settings').get('selectedArtists', defaultValue: []) ?? [];
+  String selectedArtists = Hive.box('settings').get('selectedArtists') ?? '';
   List recentList =
       Hive.box('cache').get('recentSongs', defaultValue: []) as List;
   Map likedArtists =
@@ -74,18 +73,16 @@ class _MusicHomePageState extends State<MusicHomePage>
     if (await FireBase().isNewUser(userId) && selectedArtists.isNotEmpty) {
       updateRecommend = await MusicAPI().getRecommendByHobbies(selectedArtists);
       if (updateRecommend.isNotEmpty) {
-        setState(() {
-          Hive.box('cache').put('userRecommedSongs', updateRecommend);
-          userRecommedSongs = updateRecommend;
-        });
+        Hive.box('cache').put('userRecommedSongs', updateRecommend);
+        userRecommedSongs = updateRecommend;
+        setState(() {});
       }
     } else {
       updateRecommend = await MusicAPI().getUserSimilarSongs(userId);
       if (updateRecommend.isNotEmpty) {
-        setState(() {
-          Hive.box('cache').put('userRecommedSongs', updateRecommend);
-          userRecommedSongs = updateRecommend;
-        });
+        Hive.box('cache').put('userRecommedSongs', updateRecommend);
+        userRecommedSongs = updateRecommend;
+        setState(() {});
       }
     }
     Map recievedData = await MusicAPI().fetchHomePageData();

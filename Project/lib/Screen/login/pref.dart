@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:incognito_music/APIs/api.dart';
 
 import '../../CustomWidgets/gradient_containers.dart';
 import '../../CustomWidgets/snack_bar.dart';
@@ -29,9 +28,9 @@ class _PrefScreenState extends State<PrefScreen> {
       Hive.box('settings').get('region', defaultValue: 'Vietnam') as String;
 
   @override
-  void initState() async {
+  void initState(){
     super.initState();
-    randomArtists = await MusicAPI().getRandomArtists();
+    randomArtists = Hive.box('cache').get('randomArtists') as List ;
   }
 
   @override
@@ -290,7 +289,7 @@ class _PrefScreenState extends State<PrefScreen> {
                                                             Hive.box('settings')
                                                                 .put(
                                                               'selectedArtists',
-                                                              checked,
+                                                              checked.join(' '),
                                                             );
                                                           });
                                                           if (selectedArtists
